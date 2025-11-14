@@ -57,6 +57,7 @@ docker start db_605_mysql
 ## Deploy Redis on Docker
 Links:
 - https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/docker/
+- https://hub.docker.com/_/redis
 
 Download da Image: (main recente)
 ```sh
@@ -65,9 +66,7 @@ docker pull redis
 
 Criar o Conteiner:
 ```sh
-docker run -d --name redis_docker run -d --name redis_605 -p 6379:6379 redis:letast
-
-docker run -d --name redis_docker -p 6379:6379 redis:latest
+docker run --name db_605_redis -p 6379:6379 -d redis:latest
 ```
 
 <br><br><hr><hr><br><br>
