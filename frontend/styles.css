@@ -1,50 +1,115 @@
-:root{
-  --wm-green:#a7e6b0;      /* verde pastel */
-  --wm-green-dark:#1f3b2d; /* texto brand */
-  --wm-gray-bg:#f3f4f6;    /* cinza suave */
+/* ===============================================
+   RESPONSIVIDADE REAL DO DASHBOARD
+   =============================================== */
+
+/* Até 1200px – give more space between cards */
+@media (max-width: 1200px) {
+  .row.g-4 {
+    column-gap: 20px !important;
+  }
+
+  .col-lg-7 {
+    margin-left: 0 !important; /* remove deslocamento em ecrãs médios */
+  }
+
+  .card {
+    padding: 22px !important;
+  }
 }
 
-/* fundo geral bem leve */
-.bg-body{
-  background: var(--wm-gray-bg);
+/* Até 992px – Tablet landscape */
+@media (max-width: 992px) {
+
+  /* Tabela e formulário ficam um em cima do outro */
+  .col-lg-7, .col-lg-5 {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  /* Mais espaço entre eles */
+  .row.g-4 {
+    row-gap: 40px !important;
+  }
+
+  /* Inputs maiores para toque */
+  .form-control,
+  .form-select {
+    font-size: 1rem !important;
+    padding: 14px 16px !important;
+  }
+
+  /* Tabela rolagem horizontal suave */
+  .table-responsive {
+    overflow-x: auto !important;
+  }
 }
 
-/* Navbar em verde escuro com botões pastel */
-.navbar-wm{
-  background-color: var(--wm-green-dark);
+/* Até 768px – Tablet / telemóvel grande */
+@media (max-width: 768px) {
+  header .btn-wm,
+  header .btn-outline-light {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+  }
+
+  .navbar-brand {
+    font-size: 1rem !important;
+  }
+
+  /* Cards mais juntos mas organizados */
+  .row.g-4 {
+    row-gap: 30px !important;
+  }
 }
 
-/* botão pastel da navbar */
-.btn-wm{
-  background-color: var(--wm-green);
-  border-color: var(--wm-green);
-  color:#0b1f14;
-  font-weight:600;
-}
-.btn-wm:hover{
-  filter:brightness(.95);
-  color:#0b1f14;
-}
+/* Até 576px – Telemóvel normal */
+@media (max-width: 576px) {
 
-/* cards levemente arredondados */
-.card{
-  border-radius: 14px;
-}
+  /* Cards com menos padding */
+  .card {
+    padding: 18px !important;
+  }
 
-/* inputs mais confortáveis */
-.form-control,
-.form-select{
-  border-radius:10px;
-}
+  /* inputs adaptados */
+  .form-control,
+  .form-select {
+    padding: 12px 14px !important;
+  }
 
-/* tabela mais suave */
-.table thead th{
-  font-weight:700;
+  /* botões verticalmente */
+  .d-flex.gap-2.mt-4 {
+    flex-direction: column;
+  }
+
+  /* Title mais pequeno */
+  .card-header h2 {
+    font-size: 1.1rem !important;
+  }
 }
 
+/* Até 420px – Telemóvel pequeno */
+@media (max-width: 420px) {
 
+  /* Navbar reduzida */
+  .navbar-brand {
+    font-size: 0.9rem !important;
+  }
 
+  .btn-wm, .btn-outline-light {
+    font-size: 0.75rem !important;
+    padding: 6px 8px !important;
+  }
 
-.col-lg-7 {
-margin-left: -154px !important;
+  /* Tabela ajustada */
+  table td, table th {
+    padding: 10px !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* Form inputs */
+  .form-control,
+  .form-select {
+    font-size: 0.85rem !important;
+    padding: 10px 12px !important;
+  }
 }

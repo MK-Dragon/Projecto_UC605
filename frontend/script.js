@@ -1,22 +1,4 @@
-/* ====== Helpers de armazenamento ====== */
-const STORAGE_KEY = "wm_products";
-
-function loadProducts() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? [];
-  } catch {
-    return [];
-  }
-}
-function saveProducts(list) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-}
-
-/* ====== Estado ====== */
-let products = loadProducts();
-let editingId = null;
-
-/* ====== Selectores ====== */
+/* ====== SELECTORES ====== */
 const tbody = document.querySelector("#productsTable tbody");
 const rowTpl = document.querySelector("#rowTemplate");
 
@@ -25,41 +7,108 @@ const idInput = document.getElementById("id");
 const nameInput = document.getElementById("name");
 const catInput = document.getElementById("category");
 const qtyInput = document.getElementById("quantity");
-const priceInput = document.getElementById("price");
-const submitBtn = document.getElementById("submitBtn");
 
+const submitBtn = document.getElementById("submitBtn");
 const resetBtn = document.getElementById("resetBtn");
+
 const refreshBtn = document.getElementById("refreshBtn");
 const clearBtn = document.getElementById("clearBtn");
 const searchInput = document.getElementById("search");
 
-/* ====== Renderização da tabela ====== */
-function formatPrice(n) {
-  const val = Number(n || 0);
-  return val.toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
+/* ====== DB ====== */
+const DB = {
+  products: JSON.parse(localStorage.getItem("db_products")) || [],
+  categories: JSON.parse(localStorage.getItem("db_categories")) || [],
+  stores: JSON.parse(localStorage.getItem("db_stores")) || [],
+  store_stock: JSON.parse(localStorage.getItem("db_store_stock")) || [],
+  users: JSON.parse(localStorage.getItem("db_users")) || []
+};
+
+function saveDB() {
+  localStorage.setItem("db_products", JSON.stringify(DB.products));
+  localStorage.setItem("db_categories", JSON.stringify(DB.categories));
+  localStorage.setItem("db_stores", JSON.stringify(DB.stores));
+  localStorage.setItem("db_store_stock", JSON.stringify(DB.store_stock));
+  localStorage.setItem("db_users", JSON.stringify(DB.users));
+}
+
+/* ====== Produtos ====== */
+function nextProductId() {
+  return DB.products.length ? Math.max(...DB.products.map(p => p.id)) + 1 : 1;
+}
+
+function addProduct({ name, category, quantity }) {
+  const id = nextProductId();
+
+  DB.products.push({
+    id: id,
+    name: name.trim(),
+    id_category: Number(category)
+  });
+
+  DB.store_stock.push({
+    id_store: 1,
+    id_product: id,
+    quant: Number(quantity)
+  });
+
+  saveDB();
+  renderTable(searchInput.value);
+}
+
+function updateProduct(id, { name, category, quantity }) {
+  const p = DB.products.find(x => x.id === id);
+  if (!p) return;
+
+  p.name = name.trim();
+  p.id_category = Number(category);
+
+  const stock = DB.store_stock.find(s => s.id_product === id);
+  if (stock) stock.quant = Number(quantity);
+
+  saveDB();
+  renderTable(searchInput.value);
+}
+
+function removeProduct(id) {
+  if (!confirm("Delete this product?")) return;
+
+  DB.products = DB.products.filter(p => p.id !== id);
+  DB.store_stock = DB.store_stock.filter(s => s.id_product !== id);
+
+  saveDB();
+  renderTable(searchInput.value);
+  resetForm();
+}
+
+/* ====== Render ====== */
+function getCategoryName(id) {
+  const c = DB.categories.find(x => x.id === id);
+  return c ? c.name : "—";
+}
+
+function getQuantity(id_product) {
+  const s = DB.store_stock.find(x => x.id_product === id_product);
+  return s ? s.quant : 0;
 }
 
 function renderTable(filter = "") {
   tbody.innerHTML = "";
   const term = filter.trim().toLowerCase();
 
-  const data = products
-    .filter(p =>
-      !term ||
-      p.name.toLowerCase().includes(term) ||
-      p.category.toLowerCase().includes(term)
-    )
-    .sort((a,b) => a.id - b.id);
+  const data = DB.products.filter(p =>
+    !term ||
+    p.name.toLowerCase().includes(term)
+  );
 
   for (const p of data) {
     const row = rowTpl.content.firstElementChild.cloneNode(true);
+
     row.querySelector('[data-cell="id"]').textContent = p.id;
     row.querySelector('[data-cell="name"]').textContent = p.name;
-    row.querySelector('[data-cell="category"]').textContent = p.category;
-    row.querySelector('[data-cell="quantity"]').textContent = p.quantity;
-    row.querySelector('[data-cell="price"]').textContent = formatPrice(p.price);
+    row.querySelector('[data-cell="category"]').textContent = getCategoryName(p.id_category);
+    row.querySelector('[data-cell="quantity"]').textContent = getQuantity(p.id);
 
-    // ações
     row.querySelector(".edit").addEventListener("click", () => loadIntoForm(p.id));
     row.querySelector(".delete").addEventListener("click", () => removeProduct(p.id));
 
@@ -67,57 +116,19 @@ function renderTable(filter = "") {
   }
 }
 
-/* ====== CRUD ====== */
-function nextId() {
-  return products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
-}
+/* ====== Form ====== */
+let editingId = null;
 
-function addProduct({ name, category, quantity, price }) {
-  const item = {
-    id: nextId(),
-    name: name.trim(),
-    category,
-    quantity: Number(quantity),
-    price: Number(price)
-  };
-  products.push(item);
-  saveProducts(products);
-  renderTable(searchInput.value);
-}
-
-function updateProduct(id, { name, category, quantity, price }) {
-  const idx = products.findIndex(p => p.id === id);
-  if (idx === -1) return;
-
-  products[idx] = {
-    ...products[idx],
-    name: name.trim(),
-    category,
-    quantity: Number(quantity),
-    price: Number(price)
-  };
-  saveProducts(products);
-  renderTable(searchInput.value);
-}
-
-function removeProduct(id) {
-  if (!confirm("Delete this product?")) return;
-  products = products.filter(p => p.id !== id);
-  saveProducts(products);
-  renderTable(searchInput.value);
-  resetForm();
-}
-
-/* ====== Formulário ====== */
 function loadIntoForm(id) {
-  const p = products.find(x => x.id === id);
-  if (!p) return;
+  const p = DB.products.find(x => x.id === id);
+  const stock = DB.store_stock.find(x => x.id_product === id);
+
   editingId = id;
   idInput.value = id;
   nameInput.value = p.name;
-  catInput.value = p.category;
-  qtyInput.value = p.quantity;
-  priceInput.value = p.price;
+  catInput.value = p.id_category;
+  qtyInput.value = stock ? stock.quant : 0;
+
   submitBtn.textContent = "SAVE";
 }
 
@@ -134,15 +145,8 @@ form.addEventListener("submit", (e) => {
   const payload = {
     name: nameInput.value,
     category: catInput.value,
-    quantity: qtyInput.value,
-    price: priceInput.value
+    quantity: qtyInput.value
   };
-
-  // validação rápida
-  if (!payload.name || !payload.category) {
-    alert("Preenche nome e categoria.");
-    return;
-  }
 
   if (editingId) updateProduct(Number(editingId), payload);
   else addProduct(payload);
@@ -150,27 +154,31 @@ form.addEventListener("submit", (e) => {
   resetForm();
 });
 
-resetBtn.addEventListener("click", resetForm);
-refreshBtn.addEventListener("click", () => renderTable(searchInput.value));
-clearBtn.addEventListener("click", () => {
-  if (confirm("Apagar todos os produtos guardados?")) {
-    products = [];
-    saveProducts(products);
-    renderTable();
-    resetForm();
-  }
-});
 searchInput.addEventListener("input", (e) => renderTable(e.target.value));
 
-/* ====== Demo: seed inicial (apenas se vazio) ====== */
-(function seedIfEmpty(){
-  if (products.length) { renderTable(); return; }
-  products = [
-    { id:1, name:"product 1", category:"Technologic", quantity:5, price:100.00 },
-    { id:2, name:"product 2", category:"Clothing",   quantity:10, price:500.00 },
-    { id:3, name:"product 3", category:"Home",       quantity:3,  price:120.00 },
-    { id:4, name:"product 4", category:"Sports",     quantity:8,  price:175.00 }
-  ];
-  saveProducts(products);
+/* ====== Seed ====== */
+(function seedIfEmpty() {
+  if (!DB.categories.length) {
+    DB.categories = [
+      { id: 1, name: "Technologic" },
+      { id: 2, name: "Clothing" },
+      { id: 3, name: "Home" },
+      { id: 4, name: "Sports" }
+    ];
+  }
+
+  if (!DB.stores.length) {
+    DB.stores = [
+      { id: 1, name: "Main Store" }
+    ];
+  }
+
+  if (!DB.users.length) {
+    DB.users = [
+      { id: 1, username: "admin", password: "1234" }
+    ];
+  }
+
+  saveDB();
   renderTable();
 })();

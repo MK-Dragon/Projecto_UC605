@@ -3,78 +3,73 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>UI do site — Warehouse Manager</title>
+  <title>Warehouse Manager</title>
 
   <!-- Bootstrap -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
-  <!-- Estilos personalizados -->
+  <!-- Estilos -->
   <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body class="bg-body">
   <!-- Navbar -->
-  <header class="navbar navbar-expand-lg navbar-dark navbar-wm shadow-sm">
+  <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
     <div class="container-fluid">
       <span class="navbar-brand fw-bold">Warehouse Manager</span>
 
       <div class="d-flex flex-wrap gap-2">
-        <button class="btn btn-wm" type="button" data-nav="insert">Insert products</button>
-        <button class="btn btn-wm" type="button" data-nav="products">Products</button>
-        <button class="btn btn-wm" type="button" data-nav="users">Users</button>
-        <button class="btn btn-wm" type="button" data-nav="settings">Settings</button>
-        <a href="login.html" class="btn btn-outline-light">Login</a>
+        <button class="btn btn-outline-primary" type="button" data-nav="insert">Insert products</button>
+        <button class="btn btn-outline-primary" type="button" data-nav="products">Products</button>
+        <button class="btn btn-outline-primary" type="button" data-nav="users">Users</button>
+        <button class="btn btn-outline-primary" type="button" data-nav="settings">Settings</button>
+        <a href="login.html" class="btn btn-primary">Login</a>
       </div>
     </div>
   </header>
 
-  <!-- Conteúdo principal -->
+  <!-- Conteúdo -->
   <main class="container py-4">
     <div class="row g-4">
-      <!-- Tabela à esquerda -->
+
+      <!-- Tabela -->
       <section class="col-lg-7">
         <div class="card shadow-sm border-0 h-100">
+
           <div class="card-header bg-white border-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
             <h2 class="h5 mb-0">Products List</h2>
+
             <div class="d-flex flex-wrap gap-2">
-              <input
-                id="search"
-                type="search"
-                class="form-control form-control-sm"
-                placeholder="Search product..."
-              />
+              <input id="search" type="search" class="form-control form-control-sm" placeholder="Search product..." />
               <button id="refreshBtn" class="btn btn-outline-secondary btn-sm">Refresh</button>
               <button id="clearBtn" class="btn btn-outline-danger btn-sm">Clear all</button>
             </div>
           </div>
 
           <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle mb-0" id="productsTable" aria-label="Products table">
+            <table class="table table-striped table-hover align-middle mb-0" id="productsTable">
               <thead class="table-light">
                 <tr>
-                  <th scope="col">ID</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">Category</th>
-                  <th scope="col">Qty</th>
-                  <th scope="col">Price</th>
-                  <th scope="col" style="width:120px;">Actions</th>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                  <th style="width:120px;">Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                <!-- linhas geradas por JS -->
-              </tbody>
+              <tbody></tbody>
             </table>
           </div>
+
         </div>
       </section>
 
-      <!-- Formulário à direita -->
+      <!-- Formulário -->
       <aside class="col-lg-5">
         <div class="card shadow-sm border-0 h-100">
           <div class="card-body">
+
             <h2 class="h5 mb-3">Add / Edit Product</h2>
 
             <form id="productForm" autocomplete="off">
@@ -82,52 +77,30 @@
 
               <div class="mb-3">
                 <label for="name" class="form-label">Name</label>
-                <input
-                  id="name"
-                  type="text"
-                  class="form-control"
-                  placeholder="Product name"
-                  required
-                />
+                <input id="name" type="text" class="form-control" placeholder="Product name" required/>
               </div>
 
               <div class="mb-3">
                 <label for="category" class="form-label">Category</label>
                 <select id="category" class="form-select" required>
                   <option value="" disabled selected>Select category</option>
-                  <option>Electronics</option>
-                  <option>Clothing</option>
-                  <option>Home</option>
-                  <option>Sports</option>
-                  <option>Technologic</option>
+                  <!-- Correspondente à base de dados -->
+                  <option value="1">Technologic</option>
+                  <option value="2">Clothing</option>
+                  <option value="3">Home</option>
+                  <option value="4">Sports</option>
                 </select>
               </div>
 
               <div class="row g-3">
                 <div class="col-md-6">
                   <label for="quantity" class="form-label">Quantity</label>
-                  <input
-                    id="quantity"
-                    type="number"
-                    min="0"
-                    step="1"
-                    class="form-control"
-                    placeholder="0"
-                    required
-                  />
+                  <input id="quantity" type="number" min="0" class="form-control" placeholder="0" required/>
                 </div>
 
                 <div class="col-md-6">
                   <label for="price" class="form-label">Price</label>
-                  <input
-                    id="price"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    class="form-control"
-                    placeholder="0.00"
-                    required
-                  />
+                  <input id="price" type="number" min="0" step="0.01" class="form-control" placeholder="0.00" required/>
                 </div>
               </div>
 
@@ -136,9 +109,11 @@
                 <button type="button" class="btn btn-outline-secondary" id="resetBtn">Reset</button>
               </div>
             </form>
+
           </div>
         </div>
       </aside>
+
     </div>
   </main>
 
@@ -147,7 +122,7 @@
     © 2025 Warehouse Manager
   </footer>
 
-  <!-- Template para linhas da tabela -->
+  <!-- Template da tabela -->
   <template id="rowTemplate">
     <tr>
       <td data-cell="id"></td>
@@ -156,8 +131,8 @@
       <td data-cell="quantity"></td>
       <td data-cell="price"></td>
       <td class="d-flex gap-1">
-        <button class="btn btn-sm btn-outline-primary edit" title="Edit">Edit</button>
-        <button class="btn btn-sm btn-outline-danger delete" title="Delete">Delete</button>
+        <button class="btn btn-sm btn-outline-primary edit">Edit</button>
+        <button class="btn btn-sm btn-outline-danger delete">Delete</button>
       </td>
     </tr>
   </template>
