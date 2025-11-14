@@ -22,7 +22,7 @@ Para já basta abrir o ficheiro *__index.html__* no browser.
 
 <br><br><hr><hr><br><br>
 
-## Deploy SQL Server on Docker
+## Deploy MySQL on Docker
 Links:
 - https://hub.docker.com/_/mysql
 
@@ -30,7 +30,7 @@ Prerequesitos:
 - Docker / Docker Desktop (you don't say...)
 - Previlégios Sudo ^_^
 
-Download da Image: (main recente do MySQL)
+Download da Image: (main recente)
 ```sh
 docker pull mysql
 ```
@@ -54,6 +54,21 @@ Start Conteiner:
 docker start db_605_mysql
 ```
 
+## Deploy Redis on Docker
+Links:
+- https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/docker/
+
+Download da Image: (main recente)
+```sh
+docker pull redis
+```
+
+Criar o Conteiner:
+```sh
+docker run -d --name redis_docker run -d --name redis_605 -p 6379:6379 redis:letast
+
+docker run -d --name redis_docker -p 6379:6379 redis:latest
+```
 
 <br><br><hr><hr><br><br>
 
