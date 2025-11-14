@@ -1,0 +1,6 @@
+@RastAPI_605_HostAddress = http://localhost:5172
+
+GET {{RastAPI_605_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
