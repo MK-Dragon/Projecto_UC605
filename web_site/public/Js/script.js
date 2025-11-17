@@ -1,3 +1,5 @@
+// js/script.js
+
 /* ====== SELECTORES ====== */
 const tbody = document.querySelector("#productsTable tbody");
 const rowTpl = document.querySelector("#rowTemplate");
@@ -182,3 +184,73 @@ searchInput.addEventListener("input", (e) => renderTable(e.target.value));
   saveDB();
   renderTable();
 })();
+
+
+
+
+
+// public/js/script.js
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Check authentication status immediately when the page loads
+    checkAuthAndLoadData();
+
+    // Attach logout functionality to a button (assuming you have a button with id="logoutButton" on index.html)
+    const logoutBtn = document.getElementById('logoutButton');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+});
+
+/**
+ * Checks for a token and loads protected data, redirecting if unauthorized.
+ */
+async function checkAuthAndLoadData() {
+    const token = localStorage.getItem('jwtToken');
+    
+    if (!token) {
+        console.log('No token found. Redirecting to login.');
+        // If no token, redirect to login page
+        window.location.href = '/login'; 
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/data', {
+            method: 'GET',
+            headers: {
+                // Attach the JWT as a Bearer Token
+                'Authorization': `Bearer ${token}` 
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Protected Data Received:', data);
+            
+            // TODO: Update your index.html UI with the data here (e.g., data.message)
+            const welcomeElement = document.getElementById('welcomeMessage');
+            if (welcomeElement) {
+                welcomeElement.textContent = data.message;
+            }
+        } else if (response.status === 401 || response.status === 403) {
+            // Token expired or invalid
+            console.log('Token invalid or expired. Logging out.');
+            handleLogout(); 
+        } else {
+            console.error('Failed to fetch data:', response.status);
+        }
+
+    } catch (error) {
+        console.error('Error fetching protected data:', error);
+    }
+}
+
+/**
+ * Handles the user logout process.
+ */
+function handleLogout() {
+    localStorage.removeItem('jwtToken'); // Remove the token
+    console.log('Logged out successfully.');
+    window.location.href = '/login'; // Redirect to log in
+}
