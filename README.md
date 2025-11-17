@@ -18,7 +18,7 @@ Correr Node Server:
 Correr Imposter de Autenticação:
 - Abrir Terninal na MD_Imposter/MB
 - correr ``` mb ```
-- Correr ficheiro: MB_Imposter/TEST_Login_front-end_to_RestAPI.http
+- Correr ficheiro: MB_Imposter/TEST_Login_from_WebSite.http
 
 Ir ao site: http://localhost:3000
 
@@ -30,7 +30,7 @@ Ir ao site: http://localhost:3000
 - RestAPI (C#) - no Visual Code (In Progress)
 - Site (Backend + Frontend) - Docker (In Progress)
 
-2º Aceder ao Site
+2º Aceder ao Site -> http://localhost:3000
 
 <br><br><hr><hr><br><br>
 
