@@ -3,6 +3,7 @@ const path = require('path');
 const jwt = require('jsonwebtoken'); 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const AUTH_SERVICE_URL = "http://localhost:4545"
 
 // Hardcoded for testing. Use an environment variable in production!
 const SECRET_KEY = 'YOUR_SUPER_SECRET_KEY_12345'; 
@@ -32,6 +33,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 // --- 1. LOGIN ROUTE (CONNECTS TO IMPOSTER) ---
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
+
+    
     
     // 1. FORWARD CREDENTIALS TO MOUNTEBANK (The Mock Auth Service)
     try {
