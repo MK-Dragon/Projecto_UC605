@@ -29,17 +29,44 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 // 2. Define REST API routes 
-app.post('/api/login', (req, res) => {
+// --- 1. LOGIN ROUTE (CONNECTS TO IMPOSTER) ---
+app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     
-    // !!! Hardcoded User Check for Testing !!!
-    // The successful user for testing is: testuser / password123
-    if (username === 'testuser' && password === 'password123') {
-        const userPayload = { id: 1, username: username };
-        const token = jwt.sign(userPayload, SECRET_KEY, { expiresIn: '1h' }); 
-        return res.json({ message: 'Login successful', token: token });
-    } else {
-        return res.status(401).json({ message: 'Credenciais inválidas' });
+    // 1. FORWARD CREDENTIALS TO MOUNTEBANK (The Mock Auth Service)
+    try {
+        const authResponse = await fetch(`${AUTH_SERVICE_URL}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+        });
+
+        // 2. CHECK MOUNTEBANK'S RESPONSE
+        if (authResponse.status === 200) {
+            // Mountebank confirmed the credentials are valid!
+            
+            // 3. GENERATE a fresh, VALID JWT for the client using Express's SECRET_KEY
+            const userPayload = { id: 1, username: username }; 
+            const token = jwt.sign(userPayload, SECRET_KEY, { expiresIn: '1h' }); 
+            
+            return res.json({ 
+                message: 'Login bem-sucedido', 
+                token: token 
+            });
+
+        } else if (authResponse.status === 401) {
+            // Mountebank returned 401 (Invalid credentials)
+            const errorData = await authResponse.json();
+            return res.status(401).json({ message: errorData.message || 'Credenciais inválidas' });
+        } else {
+            // Catch other unexpected status codes from Mountebank
+            return res.status(500).json({ message: 'Erro inesperado do serviço de autenticação' });
+        }
+
+    } catch (error) {
+        // This runs if Mountebank is not running or there is a network error
+        console.error('Network Error calling Mountebank:', error);
+        return res.status(503).json({ message: 'Serviço de autenticação indisponível (Mountebank down?).' });
     }
 });
 

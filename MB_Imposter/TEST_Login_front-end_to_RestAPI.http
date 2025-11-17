@@ -1,0 +1,134 @@
+DELETE http://localhost:2525/imposters/4545
+Content-Type: application/json
+
+###
+
+POST  http://localhost:2525/imposters
+Content-Type: application/json
+
+
+{
+  "port": 4545,
+  "protocol": "http",
+  "name": "Warehouse Manager Auth API",
+  "stubs": [
+    {
+      "comment": "1. Successful Login for 'testuser' / 'password123'",
+      "predicates": [
+        {
+          "equals": {
+            "method": "POST",
+            "path": "/api/login",
+            "body": {
+              "username": "user",
+              "password": "123"
+            }
+          }
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "message": "Login bem-sucedido",
+              "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoidGVzdHVzZXIiLCJpZCI6IjEifQ.S0meM0cK_s0M0ck-B0_lWd_m8N0yQcZ0H2e8e9v5R8s"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "comment": "2. Failed Login (Any other credentials)",
+      "predicates": [
+        {
+          "equals": {
+            "method": "POST",
+            "path": "/api/login"
+          }
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 401,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "message": "Credenciais inválidas. Tente 'testuser' / 'password123'."
+            }
+          }
+        }
+      ]
+    },
+    {
+      "comment": "3. Successful Protected Data Access (Token present)",
+      "predicates": [
+        {
+          "equals": {
+            "method": "GET",
+            "path": "/api/data"
+          }
+        },
+        {
+          "startsWith": {
+            "headers": {
+              "Authorization": "Bearer"
+            }
+          }
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "message": "Bem-vindo(a), testuser! (Dados mockados de Mountebank)",
+              "data": "Dados Confidenciais do Armazém (via Impostor 4545)"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "comment": "4. Failed Protected Data Access (Token missing)",
+      "predicates": [
+        {
+          "equals": {
+            "method": "GET",
+            "path": "/api/data"
+          }
+        },
+        {
+          "not": {
+            "startsWith": {
+              "headers": {
+                "Authorization": "Bearer"
+              }
+            }
+          }
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 401,
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "message": "Acesso negado. Token de autorização é necessário."
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
