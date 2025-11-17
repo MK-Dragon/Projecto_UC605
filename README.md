@@ -8,8 +8,14 @@ __(Work in Progress)__
 
 <br><br><hr><hr><br><br>
 
-# Install and Run
-Work in Progress (Ainda não funina lol!)
+# AUTO Run
+Só correr o ficheiro Start_Server.py! ^_^
+
+Ir ao site: http://localhost:3000
+
+<br><br><hr><hr><br><br>
+
+# Manual Install and Run
 
 Correr Node Server:
 - Abrir Terninal na pasta web_site
