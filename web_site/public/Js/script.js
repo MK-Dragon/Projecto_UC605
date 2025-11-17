@@ -1,6 +1,6 @@
-// js/script.js
-
-/* ====== SELECTORES ====== */
+//--------------------------------------------------------------
+//  SELECTORES (Index + Products)
+//--------------------------------------------------------------
 const tbody = document.querySelector("#productsTable tbody");
 const rowTpl = document.querySelector("#rowTemplate");
 
@@ -9,6 +9,7 @@ const idInput = document.getElementById("id");
 const nameInput = document.getElementById("name");
 const catInput = document.getElementById("category");
 const qtyInput = document.getElementById("quantity");
+const priceInput = document.getElementById("price");
 
 const submitBtn = document.getElementById("submitBtn");
 const resetBtn = document.getElementById("resetBtn");
@@ -17,7 +18,10 @@ const refreshBtn = document.getElementById("refreshBtn");
 const clearBtn = document.getElementById("clearBtn");
 const searchInput = document.getElementById("search");
 
-/* ====== DB ====== */
+
+//--------------------------------------------------------------
+//  DB SIMULADA (LocalStorage)
+//--------------------------------------------------------------
 const DB = {
   products: JSON.parse(localStorage.getItem("db_products")) || [],
   categories: JSON.parse(localStorage.getItem("db_categories")) || [],
@@ -34,18 +38,24 @@ function saveDB() {
   localStorage.setItem("db_users", JSON.stringify(DB.users));
 }
 
-/* ====== Produtos ====== */
+
+//--------------------------------------------------------------
+//  CRUD DE PRODUTOS
+//--------------------------------------------------------------
 function nextProductId() {
   return DB.products.length ? Math.max(...DB.products.map(p => p.id)) + 1 : 1;
 }
 
-function addProduct({ name, category, quantity }) {
+
+function addProduct({ name, category, quantity, price }) {
+
   const id = nextProductId();
 
   DB.products.push({
     id: id,
     name: name.trim(),
-    id_category: Number(category)
+    id_category: Number(category),
+    price: Number(price)
   });
 
   DB.store_stock.push({
@@ -55,22 +65,25 @@ function addProduct({ name, category, quantity }) {
   });
 
   saveDB();
-  renderTable(searchInput.value);
+  renderTable(searchInput?.value);
 }
 
-function updateProduct(id, { name, category, quantity }) {
+
+function updateProduct(id, { name, category, quantity, price }) {
   const p = DB.products.find(x => x.id === id);
   if (!p) return;
 
   p.name = name.trim();
   p.id_category = Number(category);
+  p.price = Number(price);
 
   const stock = DB.store_stock.find(s => s.id_product === id);
   if (stock) stock.quant = Number(quantity);
 
   saveDB();
-  renderTable(searchInput.value);
+  renderTable(searchInput?.value);
 }
+
 
 function removeProduct(id) {
   if (!confirm("Delete this product?")) return;
@@ -79,11 +92,14 @@ function removeProduct(id) {
   DB.store_stock = DB.store_stock.filter(s => s.id_product !== id);
 
   saveDB();
-  renderTable(searchInput.value);
+  renderTable(searchInput?.value);
   resetForm();
 }
 
-/* ====== Render ====== */
+
+//--------------------------------------------------------------
+//  FUNÇÕES AUXILIARES
+//--------------------------------------------------------------
 function getCategoryName(id) {
   const c = DB.categories.find(x => x.id === id);
   return c ? c.name : "—";
@@ -94,7 +110,13 @@ function getQuantity(id_product) {
   return s ? s.quant : 0;
 }
 
+
+//--------------------------------------------------------------
+//  RENDER TABELA (INDEX.HTML)
+//--------------------------------------------------------------
 function renderTable(filter = "") {
+  if (!tbody) return; // Não está na página index
+
   tbody.innerHTML = "";
   const term = filter.trim().toLowerCase();
 
@@ -110,6 +132,7 @@ function renderTable(filter = "") {
     row.querySelector('[data-cell="name"]').textContent = p.name;
     row.querySelector('[data-cell="category"]').textContent = getCategoryName(p.id_category);
     row.querySelector('[data-cell="quantity"]').textContent = getQuantity(p.id);
+    row.querySelector('[data-cell="price"]').textContent = p.price.toFixed(2) + " €";
 
     row.querySelector(".edit").addEventListener("click", () => loadIntoForm(p.id));
     row.querySelector(".delete").addEventListener("click", () => removeProduct(p.id));
@@ -118,7 +141,10 @@ function renderTable(filter = "") {
   }
 }
 
-/* ====== Form ====== */
+
+//--------------------------------------------------------------
+//  FORMULARIO (INDEX)
+//--------------------------------------------------------------
 let editingId = null;
 
 function loadIntoForm(id) {
@@ -126,10 +152,12 @@ function loadIntoForm(id) {
   const stock = DB.store_stock.find(x => x.id_product === id);
 
   editingId = id;
+
   idInput.value = id;
   nameInput.value = p.name;
   catInput.value = p.id_category;
   qtyInput.value = stock ? stock.quant : 0;
+  priceInput.value = p.price;
 
   submitBtn.textContent = "SAVE";
 }
@@ -141,25 +169,34 @@ function resetForm() {
   submitBtn.textContent = "ADD";
 }
 
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
+if (form) {
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-  const payload = {
-    name: nameInput.value,
-    category: catInput.value,
-    quantity: qtyInput.value
-  };
+    const payload = {
+      name: nameInput.value,
+      category: catInput.value,
+      quantity: qtyInput.value,
+      price: priceInput.value
+    };
 
-  if (editingId) updateProduct(Number(editingId), payload);
-  else addProduct(payload);
+    if (editingId) updateProduct(Number(editingId), payload);
+    else addProduct(payload);
 
-  resetForm();
-});
+    resetForm();
+  });
+}
 
-searchInput.addEventListener("input", (e) => renderTable(e.target.value));
+if (searchInput) {
+  searchInput.addEventListener("input", (e) => renderTable(e.target.value));
+}
 
-/* ====== Seed ====== */
+
+//--------------------------------------------------------------
+//  SEED INICIAL (com preço!)
+//--------------------------------------------------------------
 (function seedIfEmpty() {
+
   if (!DB.categories.length) {
     DB.categories = [
       { id: 1, name: "Technologic" },
@@ -169,15 +206,19 @@ searchInput.addEventListener("input", (e) => renderTable(e.target.value));
     ];
   }
 
-  if (!DB.stores.length) {
-    DB.stores = [
-      { id: 1, name: "Main Store" }
+  if (!DB.products.length) {
+    DB.products = [
+      { id:1, name:"Laptop",      id_category:1, price:999 },
+      { id:2, name:"T-Shirt",     id_category:2, price:20 },
+      { id:3, name:"Chair",       id_category:3, price:45 },
+      { id:4, name:"Football",    id_category:4, price:15 }
     ];
-  }
 
-  if (!DB.users.length) {
-    DB.users = [
-      { id: 1, username: "admin", password: "1234" }
+    DB.store_stock = [
+      { id_store:1, id_product:1, quant:5 },
+      { id_store:1, id_product:2, quant:30 },
+      { id_store:1, id_product:3, quant:12 },
+      { id_store:1, id_product:4, quant:8 }
     ];
   }
 
@@ -187,70 +228,134 @@ searchInput.addEventListener("input", (e) => renderTable(e.target.value));
 
 
 
+// ======================================================================
+// ========================= PRODUCTS PAGE ===============================
+// ======================================================================
+
+const isProductsPage = window.location.pathname.includes("products.html");
 
 
-// public/js/script.js
+//--------------------------------------------------------------
+//  CARDS DE PRODUTOS
+//--------------------------------------------------------------
+function renderProductCards() {
+  if (!isProductsPage) return;
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Check authentication status immediately when the page loads
-    checkAuthAndLoadData();
+  const container = document.getElementById("productsGrid");
+  const filterSelect = document.getElementById("filterCategory");
+  if (!container) return;
 
-    // Attach logout functionality to a button (assuming you have a button with id="logoutButton" on index.html)
-    const logoutBtn = document.getElementById('logoutButton');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleLogout);
+  let cat = filterSelect.value;
+  container.innerHTML = "";
+
+  DB.products.forEach(prod => {
+    if (cat !== "all" && prod.id_category != cat) return;
+
+    const qty = getQuantity(prod.id);
+
+    container.innerHTML += `
+      <div class="col-md-4">
+        <div class="product-card p-3 shadow-sm">
+          <h5>${prod.name}</h5>
+          <p class="mb-1"><strong>Category:</strong> ${getCategoryName(prod.id_category)}</p>
+          <p class="mb-1"><strong>Stock:</strong> ${qty}</p>
+          <p class="mb-3"><strong>Price:</strong> €${prod.price}</p>
+          <button class="btn btn-primary w-100 btnView" data-id="${prod.id}">View</button>
+        </div>
+      </div>
+    `;
+  });
+
+  document.querySelectorAll(".btnView").forEach(btn => {
+    btn.addEventListener("click", () => openProductModal(btn.dataset.id));
+  });
+}
+
+
+//--------------------------------------------------------------
+//  MODAL VIEW PRODUCT
+//--------------------------------------------------------------
+function openProductModal(id) {
+  id = Number(id);
+
+  const p = DB.products.find(x => x.id === id);
+  const s = DB.store_stock.find(x => x.id_product === id);
+
+  document.getElementById("modalID").textContent = p.id;
+  document.getElementById("modalName").textContent = p.name;
+  document.getElementById("modalCategory").textContent = getCategoryName(p.id_category);
+  document.getElementById("modalQty").textContent = s ? s.quant : 0;
+  document.getElementById("modalPrice").textContent = p.price;
+
+  document.getElementById("modalEdit").onclick = () =>
+    window.location.href = `index.html?edit=${p.id}`;
+
+  document.getElementById("modalDelete").onclick = () => {
+    if (confirm("Delete this product?")) {
+      removeProduct(p.id);
+      renderProductCards();
+      bootstrap.Modal.getInstance(document.getElementById("productModal")).hide();
     }
+  };
+
+  new bootstrap.Modal(document.getElementById("productModal")).show();
+}
+
+
+//--------------------------------------------------------------
+//  FILTRO DE CATEGORIAS
+//--------------------------------------------------------------
+function loadCategoryFilter() {
+  if (!isProductsPage) return;
+
+  const select = document.getElementById("filterCategory");
+
+  DB.categories.forEach(cat => {
+    select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+  });
+
+  select.addEventListener("change", renderProductCards);
+}
+
+
+//--------------------------------------------------------------
+//  ADD PRODUCT BUTTON (products page)
+//--------------------------------------------------------------
+function setupAddProductButton() {
+  if (!isProductsPage) return;
+
+  document.getElementById("btnAddProduct").onclick = () => {
+    new bootstrap.Modal(document.getElementById("addConfirmModal")).show();
+  };
+
+  document.getElementById("confirmAddBtn").onclick = () =>
+    window.location.href = "index.html";
+}
+
+
+//--------------------------------------------------------------
+//  SE VIER COM ?edit=ID, CARREGA NO FORM
+//--------------------------------------------------------------
+function handleEditFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("edit");
+  if (!id) return;
+
+  if (document.getElementById("productForm")) {
+    loadIntoForm(Number(id));
+  }
+}
+
+
+//--------------------------------------------------------------
+//  INICIALIZADOR
+//--------------------------------------------------------------
+document.addEventListener("DOMContentLoaded", () => {
+  if (isProductsPage) {
+    loadCategoryFilter();
+    renderProductCards();
+    setupAddProductButton();
+  }
+
+  handleEditFromURL();
 });
-
-/**
- * Checks for a token and loads protected data, redirecting if unauthorized.
- */
-async function checkAuthAndLoadData() {
-    const token = localStorage.getItem('jwtToken');
-    
-    if (!token) {
-        console.log('No token found. Redirecting to login.');
-        // If no token, redirect to login page
-        window.location.href = '/login'; 
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/data', {
-            method: 'GET',
-            headers: {
-                // Attach the JWT as a Bearer Token
-                'Authorization': `Bearer ${token}` 
-            }
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            console.log('Protected Data Received:', data);
-            
-            // TODO: Update your index.html UI with the data here (e.g., data.message)
-            const welcomeElement = document.getElementById('welcomeMessage');
-            if (welcomeElement) {
-                welcomeElement.textContent = data.message;
-            }
-        } else if (response.status === 401 || response.status === 403) {
-            // Token expired or invalid
-            console.log('Token invalid or expired. Logging out.');
-            handleLogout(); 
-        } else {
-            console.error('Failed to fetch data:', response.status);
-        }
-
-    } catch (error) {
-        console.error('Error fetching protected data:', error);
-    }
-}
-
-/**
- * Handles the user logout process.
- */
-function handleLogout() {
-    localStorage.removeItem('jwtToken'); // Remove the token
-    console.log('Logged out successfully.');
-    window.location.href = '/login'; // Redirect to log in
-}
