@@ -10,7 +10,19 @@ __(Work in Progress)__
 
 # Install and Run
 Work in Progress (Ainda não funina lol!)
-Para já basta abrir o ficheiro *__index.html__* no browser.
+
+Correr Node Server:
+- Abrir Terninal na pasta web_site
+- correr ``` npm start ```
+
+Correr Imposter de Autenticação:
+- Abrir Terninal na MD_Imposter/MB
+- correr ``` mb ```
+- Correr ficheiro: MB_Imposter/TEST_Login_front-end_to_RestAPI.http
+
+Ir ao site: http://localhost:3000
+
+-- // --
 
 1º Deploy:
 - Database SQL - Docker (Working)
