@@ -364,6 +364,6 @@ FodyWeavers.xsd
 
 
 
-MB_Imposter/MB/
+MB_Imposter/MB/mb*
 test/
 tempCodeRunnerFile.py
