@@ -48,3 +48,10 @@ INSERT INTO `Logistica_605Forte`.`store_stock` (`id_store`, `id_product`, `quant
 (104, 2001, 50),  -- T-Shirt Cotton
 (104, 3002, 20),  -- Coffee Maker
 (104, 4002, 40);  -- Milk Gallon
+
+
+INSERT INTO `Logistica_605Forte`.`users` 
+    (`id`, `username`, `password`) 
+VALUES 
+    (1, 'admin', '123'),
+    (2, 'Zé', '321');

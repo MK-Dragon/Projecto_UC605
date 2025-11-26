@@ -11,25 +11,10 @@ namespace Project605_2.Services
         public ApiService(HttpClient client)
         {
             _request = new Request(client);
-            /*_dbServices = new DbServices(
-                "192.168.0.30",
-                3306,
-                "world",
-                "rest_user",
-                "123"
-                );*/
-            _dbServices = new DbServices(
-                "192.168.0.30",
-                3333,
-                "Logistica_605Forte",
-                "root",
-                "123"
-                );
         }
         public async Task<MarcasResponse> GetMarcas()
         {
             var response = await _request.GetMarcasAsync<MarcasResponse>("/api/marcas");
-            await _dbServices.ReadDb(["Lol", "Hello"]);
             return response;
         }
 
