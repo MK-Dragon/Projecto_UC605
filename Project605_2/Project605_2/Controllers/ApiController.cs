@@ -12,8 +12,9 @@ namespace Project605_2.Controllers
     {
         private readonly ApiService _service;
         private readonly DbServices _dbServices;
+        private readonly TokenService _tokenService;
 
-        public ApiController(ApiService service)
+        public ApiController(ApiService service, TokenService tokenService)
         {
             _service = service;
 
@@ -24,6 +25,8 @@ namespace Project605_2.Controllers
                 "root",
                 "123"
                 );
+
+            _tokenService = tokenService;
         }
 
         // Imposter Endpoints
@@ -61,24 +64,12 @@ namespace Project605_2.Controllers
 
             if (await _dbServices.ValidateLogin(loginData))
             {
-                return Ok(new { Message = "Login successful!", Token = "a_sample_jwt_token" });
-            }
-            else
-            {
-                // Return HTTP 401 Unauthorized
-                return Unauthorized(new { Message = "Invalid credentials." });
-            }
-
-
-            // --- 2. Authentication Logic (Replace this with your actual logic) ---
-            // e.g., Check the database for the user/password combination
-            bool isAuthenticated = (loginData.Username == "admin" && loginData.Password == "pass");
-
-            if (isAuthenticated)
-            {
-                // In a real application, you would generate a JWT token here
-                // or return a user-specific resource.
-                return Ok(new { Message = "Login successful!", Token = "a_sample_jwt_token" });
+                string token = _tokenService.GenerateToken(loginData.Username);
+                return Ok(new {
+                    Message = "Login successful!",
+                    Username = loginData.Username,
+                    Token = token
+                });
             }
             else
             {
