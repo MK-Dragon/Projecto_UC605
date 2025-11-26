@@ -13,6 +13,10 @@ Só correr o ficheiro Start_Server.py! ^_^
 
 Ir ao site: http://localhost:3000
 
+## AUTO Run for Testing
+É só correr o Script Start_Server_Testing.py e testar contra as APIs do Imposter.
+
+
 <br><br><hr><hr><br><br>
 
 # Manual Install and Run
@@ -32,6 +36,8 @@ Ir ao site: http://localhost:3000
 
 1º Deploy:
 - Database SQL - Docker (Working)
+    - Create DB ^_^
+    - Load Test Data ^_^
 - Database Redis - Docker (In Progress)
 - RestAPI (C#) - no Visual Code (In Progress)
 - Site (Backend + Frontend) - Docker (In Progress)
@@ -59,6 +65,7 @@ docker run --name db_605_mysql -e MYSQL_ROOT_PASSWORD=123 -p 3333:3306 -d mysql:
 ```
 Nota:
 - Nome: db_605_mysql
+- User: root
 - Pass: 123
 - Port: 3333
 

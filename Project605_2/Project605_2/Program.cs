@@ -1,3 +1,4 @@
+using MySqlConnector;
 using Project605_2.Controllers;
 using Project605_2.Services;
 
@@ -9,6 +10,8 @@ builder.Services.AddHttpClient <ApiService> (client =>
 {
     client.BaseAddress = new Uri("http://localhost:4551");
 });
+
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
