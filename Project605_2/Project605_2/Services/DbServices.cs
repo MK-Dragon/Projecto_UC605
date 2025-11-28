@@ -1,6 +1,9 @@
 ﻿using MySqlConnector;
 using Project605_2.Models;
+using System.Data;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using System;
 
 namespace Project605_2.Services
 {
@@ -124,6 +127,37 @@ namespace Project605_2.Services
             }
         }
 
+        public async Task<bool> ValidateToken(string username, string token)
+        {
+            Console.WriteLine("** Opening connection - ValidateToken **");
+            try
+            { 
+                User user = await GetUserByUsername(username);
+
+                if (user == null)
+                {
+                    Console.WriteLine("\tUser not found.");
+                    return false;
+                }
+
+                if (user.Token != token)
+                {
+                    Console.WriteLine("\tToken mismatch.");
+                    return false;
+                }
+                if (user.ExpiresAt == null || user.ExpiresAt < DateTime.UtcNow)
+                {
+                    Console.WriteLine("\tToken expired.");
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
 
         // Get All Data Methods
 
@@ -151,11 +185,11 @@ namespace Project605_2.Services
                                     reader.GetString(1),
                                     reader.GetInt32(2)
                                     ));
-                                products.Add(new Product 
-                                { 
-                                    Id = reader.GetInt32(0), 
-                                    Name = reader.GetString(1), 
-                                    IdCategory = reader.GetInt32(2) 
+                                products.Add(new Product
+                                {
+                                    Id = reader.GetInt32(0),
+                                    Name = reader.GetString(1),
+                                    IdCategory = reader.GetInt32(2)
                                 });
                             }
                         }
@@ -211,6 +245,103 @@ namespace Project605_2.Services
             catch (Exception)
             {
                 return stores;
+            }
+        }
+
+
+        // Get Specific Data Methods
+
+        public async Task<User> GetUserByUsername(string username)
+        {
+            Console.WriteLine("** Opening connection - GetUserByUsername **");
+            User user = null; // Initialize user to null
+
+            try
+            {
+                // 1. Use the correct column names from your database schema
+                string sql = @"
+            SELECT 
+                Id, 
+                username, 
+                password, 
+                token, 
+                created_at, 
+                expire_at 
+            FROM users 
+            WHERE username=@username;";
+
+                using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = sql;
+                        command.Parameters.AddWithValue("@username", username);
+
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                // 2. Safely check for DBNull for nullable columns (Token, ExpiresAt)
+                                string tokenValue = reader.IsDBNull("token") ? null : reader.GetString("token");
+                                DateTime? expiresAtValue = reader.IsDBNull("expire_at") ? (DateTime?)null : reader.GetDateTime("expire_at");
+
+                                Console.WriteLine($"\tFound user: {reader.GetString("username")}");
+
+                                user = new User
+                                {
+                                    Id = reader.GetInt32("Id"),
+                                    Username = reader.GetString("username"),
+                                    Password = reader.GetString("password"),
+                                    Token = tokenValue, // Use the checked value
+                                    CreatedAt = reader.GetDateTime("created_at"),
+                                    ExpiresAt = expiresAtValue // Use the checked value
+                                };
+                            }
+                        }
+                    }
+                    Console.WriteLine("** Closing connection **");
+                }
+            }
+            // 3. Log or handle the exception instead of swallowing it
+            catch (MySqlException ex)
+            {
+                Console.WriteLine($"\t[ERROR] MySQL Exception: {ex.Message}");
+                // Consider re-throwing or logging the exception detail
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"\t[ERROR] General Exception: {ex.Message}");
+            }
+
+            return user;
+        }
+
+        // Save to Database
+
+        public async Task UpdateUserToken(User user)
+        {
+            Console.WriteLine("** Opening connection - UpdateUserToken **");
+            try
+            {
+                using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = "UPDATE users SET token=@token, expire_at=@expire_at WHERE username=@username;";
+                        command.Parameters.AddWithValue("@token", user.Token);
+                        command.Parameters.AddWithValue("@expire_at", user.ExpiresAt);
+                        command.Parameters.AddWithValue("@username", user.Username);
+                        int rowsAffected = await command.ExecuteNonQueryAsync();
+                        Console.WriteLine($"\tRows affected: {rowsAffected}");
+                    }
+                }
+                Console.WriteLine("** Closing connection **");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating user token: {ex.Message}");
             }
         }
     }

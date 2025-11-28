@@ -49,13 +49,14 @@ namespace Project605_2.Controllers
             return Ok(result);
         }
 
+
         // * Database related endpoints *
 
         // Login
         [HttpPost("login")]
         public async Task<IActionResult> AuthenticateUser([FromBody] LoginRequest loginData)
         {
-            // --- 1. Basic Validation ---
+            // Basic Validation
             if (loginData == null || string.IsNullOrEmpty(loginData.Username) || string.IsNullOrEmpty(loginData.Password))
             {
                 // Return HTTP 400 Bad Request if the payload is incomplete
@@ -64,7 +65,25 @@ namespace Project605_2.Controllers
 
             if (await _dbServices.ValidateLogin(loginData))
             {
+                User user = await _dbServices.GetUserByUsername(loginData.Username);
+
+                // Generate JWT Token
                 string token = _tokenService.GenerateToken(loginData.Username);
+                user.Token = token;
+                user.ExpiresAt = DateTime.UtcNow.AddHours(2); // Token valid for 2 hours
+                user.CreatedAt = DateTime.UtcNow;
+
+                // save token to database
+                try
+                {
+                    await _dbServices.UpdateUserToken(user);
+                }
+                catch (Exception)
+                {
+
+                    return StatusCode(500, new { Message = "Error saving token to database." });
+                }                
+
                 return Ok(new {
                     Message = "Login successful!",
                     Username = loginData.Username,
@@ -84,19 +103,33 @@ namespace Project605_2.Controllers
         [HttpGet("getproducts")]
         public async Task<IActionResult> GetProducts()
         {
-            var result = await _dbServices.GetProducts();
-            return Ok(result);
+            try
+            {
+                var result = await _dbServices.GetProducts();
+                return Ok(result);
+            }
+            catch (Exception err)
+            {
+                return StatusCode(500, new { Message = $"Server Error. {err.Message}" });
+            }
         }
 
         [HttpGet("getstores")]
         public async Task<IActionResult> GetStores()
         {
-            var result = await _dbServices.GetStores();
-            return Ok(result);
+            try
+            {
+                var result = await _dbServices.GetStores();
+                return Ok(result);
+            }
+            catch (Exception err)
+            {
+                return StatusCode(500, new { Message = $"Server Error. {err.Message}" });
+            }
         }
 
 
-
+        // ??
 
     }
 }

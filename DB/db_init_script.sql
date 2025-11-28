@@ -83,7 +83,8 @@ CREATE TABLE IF NOT EXISTS `Logistica_605Forte`.`users` (
   `id` INT NOT NULL auto_increment,
   `username` VARCHAR(45) NOT NULL,
   `password` VARCHAR(100) NOT NULL,
-  `expires_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,       -- The exact time the token expires
+  `token` VARCHAR(1024),
+  `expire_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,       -- The exact time the token expires
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- When the token was issued
   PRIMARY KEY (`id`),
   UNIQUE INDEX `username_UNIQUE` (`username` ASC) VISIBLE)
