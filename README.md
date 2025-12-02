@@ -96,6 +96,49 @@ docker run --name db_605_redis -p 6379:6379 -d redis:latest
 
 <br><br><hr><hr><br><br>
 
+# Running Unittests
+Ter Python instalado e PIP
+
+### Virtualenv (ambiente virtual para Python)
+Virtualenv é opcional mas recomendado, pois mantem todas as Libraries isuladas e impede que algo seja updated/downgraded por acidente.
+
+1) Istalar 
+```bash
+pip install virtualenv
+```
+
+2) (__Linux__) Create VENV
+```bash
+python3 -m venv .venv
+```
+
+2) (__Windows__) Create VENV
+```bash
+python -m venv .venv
+```
+
+3) (__Linux__) Enter no VENV 
+```bash
+source .venv/bin/activate
+```
+
+3) (__Windows__) Enter no VENV 
+```bash
+.\venv\Scripts\Activate.ps1
+```
+
+4) Libraries a Instalar:
+```bash
+pip install requests
+```
+
+
+5) __Por fim Correr script de testes.__
+
+
+<br><br><hr><hr><br><br>
+
+
 # Road Map
 
 Main:
