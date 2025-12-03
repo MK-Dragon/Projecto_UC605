@@ -148,6 +148,55 @@ class TestAPI():
 
 
 
+    def test_05_get_categories_with_Token(self):
+        print("\nTestlogin with code 200:")
+        try:
+            url = SERVER_IP + "/api/getcategories"
+            # 1. Prepare and execute the request, disabling SSL verification
+            headers = {
+                "Authorization": f"Bearer {self.token}",
+                "Username": USERNAME,
+                "Content-Type": "application/json" # Good practice to include this
+            }
+            response = requests.get(url, headers=headers, json=None, timeout=10, verify=False)
+
+            print(f"\tExpected status code 200 -> Got {response.status_code}")
+
+            try:
+                for i in response.json():
+                    print(f"\t\t{i["id"]} - {i["name"]}")
+            except:
+                print(f"\t{response.json()["message"]}")
+
+        except Exception as e:
+            print(f"\tError: {e}")
+    
+
+    def test_06_get_stores_with_Token(self):
+        print("\nTestlogin with code 200:")
+        try:
+            url = SERVER_IP + "/api/getstores"
+            # 1. Prepare and execute the request, disabling SSL verification
+            headers = {
+                "Authorization": f"Bearer {self.token}",
+                "Username": USERNAME,
+                "Content-Type": "application/json" # Good practice to include this
+            }
+            response = requests.get(url, headers=headers, json=None, timeout=10, verify=False)
+
+            print(f"\tExpected status code 200 -> Got {response.status_code}")
+
+            try:
+                for i in response.json():
+                    print(f"\t\t{i["id"]} - {i["name"]}")
+            except:
+                print(f"\t{response.json()["message"]}")
+
+        except Exception as e:
+            print(f"\tError: {e}")
+
+
+
 
 def makeSpacer(title:str = ""):
     print(f"\n\n\n--- {title} ---")
@@ -155,7 +204,6 @@ def makeSpacer(title:str = ""):
 
 
 if __name__ == '__main__':
-    # Add verbosity (v=2) to see test names in the output
     test = TestAPI()
 
     print("\n\n\n\n\n\n\n")
@@ -168,4 +216,8 @@ if __name__ == '__main__':
     test.test_03_get_products_with_Token()
     test.test_04_get_products_NO_Token()
 
-    makeSpacer("??")
+    makeSpacer("Store and Categories")
+    test.test_05_get_categories_with_Token()
+    test.test_06_get_stores_with_Token()
+
+    makeSpacer("???")

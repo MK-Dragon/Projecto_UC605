@@ -5,6 +5,7 @@ using Project605_2.ApiRequest;
 using Project605_2.ModelRequests;
 using Project605_2.Models;
 using Project605_2.Services;
+using System.Linq.Expressions;
 
 namespace Project605_2.Controllers
 {
@@ -16,6 +17,7 @@ namespace Project605_2.Controllers
         private readonly DbServices _dbServices;
         private readonly TokenService _tokenService;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly LoginService _loginService;
 
         public ApiController(ApiService service, TokenService tokenService, IHttpContextAccessor httpContextAccessor)
         {
@@ -31,6 +33,7 @@ namespace Project605_2.Controllers
 
             _tokenService = tokenService;
             _httpContextAccessor = httpContextAccessor;
+            _loginService = new LoginService(_dbServices);
         }
 
 
@@ -148,16 +151,22 @@ namespace Project605_2.Controllers
         [HttpGet("getproducts")]
         public async Task<IActionResult> GetProducts()
         {
-            try
+            /*try
             {
                 // Get Auth Header
                 var request = _httpContextAccessor.HttpContext.Request;
                 string authorizationHeader = request.Headers["Authorization"].FirstOrDefault();
                 string username = request.Headers["Username"].FirstOrDefault();
+                string token = "No Token";
+                
+                // Check the is a token
+                if (authorizationHeader == null)
+                {
+                    return Unauthorized(new { Message = "No token Found." });
+                }
 
                 // Get token and user
-                string token = authorizationHeader.Substring("Bearer ".Length).Trim();
-                //string username = request.Query["username"];
+                token = authorizationHeader.Substring("Bearer ".Length).Trim();
 
                 Console.WriteLine($"Token: {token}");
                 Console.WriteLine($"Username: {username}");
@@ -174,25 +183,55 @@ namespace Project605_2.Controllers
             catch (Exception err)
             {
                 return StatusCode(500, new { Message = $"Server Error. {err.Message}" });
-            }
+            }*/
+
+
+            // Refector:
+            return await _loginService.ValidateAndGet(
+                async () => 
+                {
+                    var result = await _dbServices.GetProducts();
+                    return Ok(result);
+                },
+                "GetProducts",
+                _httpContextAccessor.HttpContext.Request
+            );
+
+        }
+
+        [HttpGet("getcategories")]
+        public async Task<IActionResult> GetCategories()
+        {
+            return await _loginService.ValidateAndGet(
+                async () =>
+                {
+                    var result = await _dbServices.GetCategories();
+                    return Ok(result);
+                },
+                "GetCategories",
+                _httpContextAccessor.HttpContext.Request
+            );
         }
 
         [HttpGet("getstores")]
         public async Task<IActionResult> GetStores()
         {
-            try
-            {
-                var result = await _dbServices.GetStores();
-                return Ok(result);
-            }
-            catch (Exception err)
-            {
-                return StatusCode(500, new { Message = $"Server Error. {err.Message}" });
-            }
+            return await _loginService.ValidateAndGet(
+                async () =>
+                {
+                    var result = await _dbServices.GetStores();
+                    return Ok(result);
+                },
+                "GetStores",
+                _httpContextAccessor.HttpContext.Request
+            );
         }
 
 
         // ??
 
+
+        // Helpers ^_^
+        
     }
 }

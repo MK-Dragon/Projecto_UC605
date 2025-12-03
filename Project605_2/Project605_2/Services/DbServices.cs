@@ -271,6 +271,48 @@ namespace Project605_2.Services
             }
         }
 
+        public async Task<List<Category>> GetCategories()
+        {
+            List<Category> categories = new List<Category>();
+            try
+            {
+                using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    Console.WriteLine("** Opening connection - Categories **");
+                    await conn.OpenAsync();
+
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = "SELECT * FROM categories;";
+
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                Console.WriteLine(string.Format(
+                                    "\tReading from table=({0}, {1})",
+                                    reader.GetInt32(0),
+                                    reader.GetString(1)
+                                    ));
+                                categories.Add(new Category
+                                {
+                                    Id = reader.GetInt32(0),
+                                    Name = reader.GetString(1)
+                                });
+                            }
+                        }
+                    }
+
+                    Console.WriteLine("** Closing connection **");
+                }
+                return categories;
+            }
+            catch (Exception)
+            {
+                return categories;
+            }
+        }
+
 
         // Get Specific Data Methods
 

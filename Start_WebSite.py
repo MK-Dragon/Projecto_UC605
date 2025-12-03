@@ -61,14 +61,14 @@ def main():
     except Exception as e:
         print(f"Error: {e}")
     
-    try:
+    '''try:
         start_cmd_service("MB_Imposter/MB", 'mb')
     except Exception as e:
         print(f"Error: {e}")
     
     sleep(1)
 
-    start_all_imposters(imposter_dir)
+    start_all_imposters(imposter_dir)'''
 
 
 
