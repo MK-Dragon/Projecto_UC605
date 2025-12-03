@@ -12,6 +12,9 @@ SERVER_IP = "https://localhost:7181"
 EXPECTED_LOGIN_SUCCESS = {"token": "mock_jwt_token_12345", "username": "admin", "message": "Login successful!"}
 EXPECTED_LOGIN_FAILED = {"message": "Invalid credentials."}
 
+USERNAME = "admin"
+PASSWORD = "123"
+
 
 class TestAPI():
     """
@@ -37,7 +40,7 @@ class TestAPI():
             url = SERVER_IP + "/api/login"
         
             # 1. Prepare and execute the request, disabling SSL verification
-            data = {"username": "admin", "password": "hgfhfg"}
+            data = {"username": USERNAME, "password": "hgfhfg"}
             response = requests.post(url, json=data, timeout=10, verify=False)
             
             # 2. Assertions
@@ -70,7 +73,7 @@ class TestAPI():
             url = SERVER_IP + "/api/login"
         
             # 1. Prepare and execute the request, disabling SSL verification
-            data = {"username": "admin", "password": "123"}
+            data = {"username": USERNAME, "password": PASSWORD}
             response = requests.post(url, json=data, timeout=10, verify=False)
             
             # 2. Assertions
@@ -89,6 +92,7 @@ class TestAPI():
             
             #self.assertTrue(TestAPI.token, "Token should be captured from the response.")
             print(f"\nTest 200 Success Passed. Captured Token: {TestAPI.token[:10]}...")
+            print(f"\nToken: {TestAPI.token}")
             
         except Exception as e:
             #self.fail(f"Test failed: Received 200 but response was not valid JSON. Response text: {response.text}")
@@ -96,17 +100,47 @@ class TestAPI():
 
 
     def test_03_get_products_with_Token(self):
-        print("\nTestlogin with code 200 and captures the token:")
+        print("\nTestlogin with code 200:")
         try:
             url = SERVER_IP + "/api/getproducts"
             # 1. Prepare and execute the request, disabling SSL verification
-            data = {"username": "admin", "token": self.token}
-            response = requests.get(url, json=data, timeout=10, verify=False)
+            headers = {
+                "Authorization": f"Bearer {self.token}",
+                "Username": USERNAME,
+                "Content-Type": "application/json" # Good practice to include this
+            }
+            response = requests.get(url, headers=headers, json=None, timeout=10, verify=False)
 
             print(f"\tExpected status code 200 -> Got {response.status_code}")
 
-            for i in response.json()["products"]:
-                print(f"\t\t{i}")
+            try:
+                for i in response.json():
+                    print(f"\t\t{i["id"]} - {i["name"]}")
+            except:
+                print(f"\t{response.json()["message"]}")
+
+        except Exception as e:
+            print(f"\tError: {e}")
+        
+    
+    def test_04_get_products_NO_Token(self):
+        print("\nTestlogin with code 401:")
+        try:
+            url = SERVER_IP + "/api/getproducts"
+            # 1. Prepare and execute the request, disabling SSL verification
+            headers = {
+                "Authorization": f"Bearer alkçsdjhflshjad",
+                "Content-Type": "application/json" # Good practice to include this
+            }
+            response = requests.get(url, headers=headers, json=None, timeout=10, verify=False)
+
+            print(f"\tExpected status code 401 -> Got {response.status_code}")
+
+            try:
+                for i in response.json():
+                    print(f"\t\t{i["id"]} - {i["name"]}")
+            except:
+                print(f"\t{response.json()["message"]}")
 
         except Exception as e:
             #self.fail(f"Test failed: Received 200 but response was not valid JSON. Response text: {response.text}")
@@ -115,6 +149,8 @@ class TestAPI():
 
 
 
+def makeSpacer(title:str = ""):
+    print(f"\n\n\n--- {title} ---")
 
 
 
@@ -122,6 +158,14 @@ if __name__ == '__main__':
     # Add verbosity (v=2) to see test names in the output
     test = TestAPI()
 
+    print("\n\n\n\n\n\n\n")
+
+    makeSpacer("Testing Login")
     test.test_01_login_fail()
     test.test_02_login_success()
+
+    makeSpacer("Auth with Tokens")
     test.test_03_get_products_with_Token()
+    test.test_04_get_products_NO_Token()
+
+    makeSpacer("??")

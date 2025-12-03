@@ -155,6 +155,29 @@ namespace Project605_2.Services
             }
             catch (Exception)
             {
+                Console.WriteLine("\tError?!.");
+                return false;
+            }
+        }
+
+        public async Task<bool> InvalidateToken(string username) // logout
+        {
+            Console.WriteLine("** Opening connection - InvalidateToken **");
+            try
+            {
+                User user = await GetUserByUsername(username);
+                if (user == null)
+                {
+                    Console.WriteLine("\tUser not found.");
+                    return false;
+                }
+                user.Token = null;
+                user.ExpiresAt = null;
+                await UpdateUserToken(user);
+                return true;
+            }
+            catch (Exception)
+            {
                 return false;
             }
         }
@@ -332,6 +355,7 @@ namespace Project605_2.Services
                         command.CommandText = "UPDATE users SET token=@token, expire_at=@expire_at WHERE username=@username;";
                         command.Parameters.AddWithValue("@token", user.Token);
                         command.Parameters.AddWithValue("@expire_at", user.ExpiresAt);
+                        command.Parameters.AddWithValue("@created_at", user.CreatedAt);
                         command.Parameters.AddWithValue("@username", user.Username);
                         int rowsAffected = await command.ExecuteNonQueryAsync();
                         Console.WriteLine($"\tRows affected: {rowsAffected}");

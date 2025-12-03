@@ -1,6 +1,6 @@
 ﻿namespace Project605_2.ModelRequests
 {
-    public class PayLoadRequest
+    public class DataRequest
     {
         public string Username { get; set; } = "";
         public string Token { get; set; } = "";

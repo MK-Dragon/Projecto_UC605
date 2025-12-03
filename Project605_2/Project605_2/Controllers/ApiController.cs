@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Project605_2.ApiRequest;
+using Project605_2.ModelRequests;
 using Project605_2.Models;
 using Project605_2.Services;
 
@@ -13,8 +15,9 @@ namespace Project605_2.Controllers
         private readonly ApiService _service;
         private readonly DbServices _dbServices;
         private readonly TokenService _tokenService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ApiController(ApiService service, TokenService tokenService)
+        public ApiController(ApiService service, TokenService tokenService, IHttpContextAccessor httpContextAccessor)
         {
             _service = service;
 
@@ -27,17 +30,14 @@ namespace Project605_2.Controllers
                 );
 
             _tokenService = tokenService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        // Imposter Endpoints
+
+        /*/ Imposter Endpoints
         [HttpGet("getmarcas")]
         public async Task<IActionResult> GetMarcas()
         {
-            /*var result = new MarcasResponse
-            {
-                Marcas = new List<string> { "Toyota", "Audi", "Ford", "Volvo", "Honda" }
-            };*/
-            
             var result = await _service.GetMarcas();
             return Ok(result);
         }
@@ -47,7 +47,7 @@ namespace Project605_2.Controllers
         {
             var result = await _service.GetModelos();
             return Ok(result);
-        }
+        }*/
 
 
         // * Database related endpoints *
@@ -150,6 +150,24 @@ namespace Project605_2.Controllers
         {
             try
             {
+                // Get Auth Header
+                var request = _httpContextAccessor.HttpContext.Request;
+                string authorizationHeader = request.Headers["Authorization"].FirstOrDefault();
+                string username = request.Headers["Username"].FirstOrDefault();
+
+                // Get token and user
+                string token = authorizationHeader.Substring("Bearer ".Length).Trim();
+                //string username = request.Query["username"];
+
+                Console.WriteLine($"Token: {token}");
+                Console.WriteLine($"Username: {username}");
+
+                // Validate Token
+                if (!await _dbServices.ValidateToken(username, token))
+                {
+                    return Unauthorized(new { Message = "Invalid or expired token." });
+                }
+
                 var result = await _dbServices.GetProducts();
                 return Ok(result);
             }
