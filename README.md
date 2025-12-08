@@ -44,6 +44,12 @@ Ir ao site: http://localhost:3000
 
 2º Aceder ao Site -> http://localhost:3000
 
+--- // ---
+
+# NPM Libs
+- npm install axios
+- npm install cors
+
 <br><br><hr><hr><br><br>
 
 ## Deploy MySQL on Docker

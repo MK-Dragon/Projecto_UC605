@@ -105,8 +105,8 @@ class TestAPI():
             url = SERVER_IP + "/api/getproducts"
             # 1. Prepare and execute the request, disabling SSL verification
             headers = {
-                "Authorization": f"Bearer {self.token}",
-                "Username": USERNAME,
+                "authorization": f"Bearer {self.token}",
+                "username": USERNAME,
                 "Content-Type": "application/json" # Good practice to include this
             }
             response = requests.get(url, headers=headers, json=None, timeout=10, verify=False)
@@ -129,7 +129,7 @@ class TestAPI():
             url = SERVER_IP + "/api/getproducts"
             # 1. Prepare and execute the request, disabling SSL verification
             headers = {
-                "Authorization": f"Bearer alkçsdjhflshjad",
+                "authorization": f"Bearer alkçsdjhflshjad",
                 "Content-Type": "application/json" # Good practice to include this
             }
             response = requests.get(url, headers=headers, json=None, timeout=10, verify=False)
@@ -154,7 +154,7 @@ class TestAPI():
             url = SERVER_IP + "/api/getcategories"
             # 1. Prepare and execute the request, disabling SSL verification
             headers = {
-                "Authorization": f"Bearer {self.token}",
+                "authorization": f"Bearer {self.token}",
                 "Username": USERNAME,
                 "Content-Type": "application/json" # Good practice to include this
             }
@@ -178,8 +178,8 @@ class TestAPI():
             url = SERVER_IP + "/api/getstores"
             # 1. Prepare and execute the request, disabling SSL verification
             headers = {
-                "Authorization": f"Bearer {self.token}",
-                "Username": USERNAME,
+                "authorization": f"Bearer {self.token}",
+                "username": USERNAME,
                 "Content-Type": "application/json" # Good practice to include this
             }
             response = requests.get(url, headers=headers, json=None, timeout=10, verify=False)

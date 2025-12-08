@@ -151,41 +151,6 @@ namespace Project605_2.Controllers
         [HttpGet("getproducts")]
         public async Task<IActionResult> GetProducts()
         {
-            /*try
-            {
-                // Get Auth Header
-                var request = _httpContextAccessor.HttpContext.Request;
-                string authorizationHeader = request.Headers["Authorization"].FirstOrDefault();
-                string username = request.Headers["Username"].FirstOrDefault();
-                string token = "No Token";
-                
-                // Check the is a token
-                if (authorizationHeader == null)
-                {
-                    return Unauthorized(new { Message = "No token Found." });
-                }
-
-                // Get token and user
-                token = authorizationHeader.Substring("Bearer ".Length).Trim();
-
-                Console.WriteLine($"Token: {token}");
-                Console.WriteLine($"Username: {username}");
-
-                // Validate Token
-                if (!await _dbServices.ValidateToken(username, token))
-                {
-                    return Unauthorized(new { Message = "Invalid or expired token." });
-                }
-
-                var result = await _dbServices.GetProducts();
-                return Ok(result);
-            }
-            catch (Exception err)
-            {
-                return StatusCode(500, new { Message = $"Server Error. {err.Message}" });
-            }*/
-
-
             // Refector:
             return await _loginService.ValidateAndGet(
                 async () => 
@@ -228,10 +193,28 @@ namespace Project605_2.Controllers
         }
 
 
-        // ??
+        // UnSave Version (Can't get Fucking Node to work with Tokens! -.-')
+
+        [HttpGet("usgetproducts")]
+        public async Task<List<Product>> UsGetProducts()
+        {
+            return  await _dbServices.GetProducts();
+        }
+
+        [HttpGet("usgetcategories")]
+        public async Task<List<Category>> UsGetCategories()
+        {
+            return await _dbServices.GetCategories();
+        }
+
+        [HttpGet("usgetstores")]
+        public async Task<List<Store>> UsGetStores()
+        {
+            return await _dbServices.GetStores();
+        }
 
 
         // Helpers ^_^
-        
+
     }
 }

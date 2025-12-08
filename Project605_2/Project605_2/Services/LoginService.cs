@@ -53,8 +53,8 @@ namespace Project605_2.Services
                 // the result of the await is the IActionResult itself.
 
                 // Get Auth Header
-                string authorizationHeader = request.Headers["Authorization"].FirstOrDefault();
-                string username = request.Headers["Username"].FirstOrDefault();
+                string authorizationHeader = request.Headers["authorization"].FirstOrDefault();
+                string username = request.Headers["username"].FirstOrDefault();
                 string token = "No Token";
 
                 // Check the is a token

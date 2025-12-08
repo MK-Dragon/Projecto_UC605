@@ -1,35 +1,52 @@
-console.log("products.js carregado!");
+//console.log("products.js carregado!");
 // Quando a página termina de carregar, chamamos a função loadProducts()
 document.addEventListener("DOMContentLoaded", loadProducts);
 
 async function loadProducts() {
     const msg = document.getElementById("msg");
 
+    console.log("Load Products");
+
     // Buscar o token que recebeste no login (está no localStorage)
-    const token = localStorage.getItem("jwtToken");
+    //const token = localStorage.getItem("jwtToken");
+    const token = localStorage.getItem("authToken");
+    const username = localStorage.getItem("username")
+
+    console.log("User: " + username + " Token:" + token);
 
     // Se não existir token → o user não está autenticado
     if (!token) {
         msg.textContent = "Não tens sessão iniciada!";
         msg.style.color = "red";
+        console.log("Error - No token");
+        return;
+    }
+
+    if (!username) {
+        msg.textContent = "Não tens sessão iniciada!";
+        msg.style.color = "red";
+        console.log("Error - No username");
         return;
     }
 
     try {
         // Fazer pedido para o backend, na rota protegida /api/products
         // Aqui enviamos o token no header Authorization
-        const res = await fetch("/api/products", {
-            headers: {
-                "Authorization": "Bearer " + token,
-                "Username": "USERNAME",
+        console.log("Try Hard: ");
+        const res = await fetch("/api/getproducts", {
+            method: "GET",
+            /*headers: {
+                "authorization": "Bearer " + token,
+                "username": username,
                 "Content-Type": "application/json"
-            }
+            }*/
         });
 
         // Se o backend devolver erro (token inválido, expirado, etc.)
         if (!res.ok) {
             msg.textContent = "Erro ao carregar produtos";
             msg.style.color = "red";
+            console.log("Try Hard - RES Not OK - " + res.status); // -> 403
             return;
         }
 

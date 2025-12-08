@@ -57,7 +57,7 @@ async function handleLogin(event) {
             resultDiv.innerText = `message: ${data.message}`;
 
             localStorage.setItem('authToken', data.token);
-            localStorage.setItem('Username', username);
+            localStorage.setItem('username', username);
             window.location.href = "/home";
         } else {
             resultDiv.innerText = `Error: ${data.message}`;
