@@ -5,6 +5,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const AUTH_SERVICE_URL = "http://localhost:4545"
 
+const { getDataFromAPI } = require('./helper_funtions.js');
+
+
 // Hardcoded for testing. Use an environment variable in production!
 const SECRET_KEY = 'YOUR_SUPER_SECRET_KEY_12345'; 
 
@@ -33,8 +36,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 // --- 1. LOGIN ROUTE (CONNECTS TO IMPOSTER) ---
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
-
-    
     
     // 1. FORWARD CREDENTIALS TO MOUNTEBANK (The Mock Auth Service)
     try {
@@ -81,15 +82,50 @@ app.get('/api/data', authenticateToken, (req, res) => {
     });
 });
 
+app.get('/api/getproducts', authenticateToken, (req, res) => {
+    // This runs only if the token is valid
+
+    data = getDataFromAPI("/api/getproducts", token, username)
+
+    res.json({ 
+        message: `Bem-vindo(a), ${req.user.username}!`, 
+        data: 'Dados Confidenciais do Armazém' 
+    });
+});
+
+app.get('/api/getstores', authenticateToken, (req, res) => {
+    // This runs only if the token is valid
+
+    data = getDataFromAPI("/api/getproducts", token, username)
+
+    res.json({ 
+        message: `Bem-vindo(a), ${req.user.username}!`, 
+        data: 'Dados Confidenciais do Armazém' 
+    });
+});
+
+
 
 // 3. HTML page routing (Adjusted paths to 'public/pages')
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'pages', 'index.html'));
+    // If no token or expired -> Login Page
+    if (false)
+    {
+        res.sendFile(path.join(__dirname, 'public', 'pages', 'login.html'));
+    }
+    // else -> index
+    else
+    {
+        res.sendFile(path.join(__dirname, 'public', 'pages', 'index.html'));
+    }
 });
 
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'pages', 'login.html'));
 });
+
+
+
 
 // Start the server
 app.listen(PORT, () => {

@@ -33,6 +33,7 @@ async function handleLogin(event) {
             },
             body: JSON.stringify({ username, password }),
         });
+        localStorage.setItem('jwtToken', "data.token: " + username + " - " + password);
 
         const data = await response.json();
 
@@ -52,10 +53,18 @@ async function handleLogin(event) {
             messageDiv.textContent = errorMessage;
             messageDiv.style.color = 'red';
         }
+        console.log("Local Storage: ", localStorage.getItem("jwtToken"));
+
 
     } catch (error) {
         console.error('Network or server error:', error);
         messageDiv.textContent = 'Ocorreu um erro no servidor.';
         messageDiv.style.color = 'red';
     }
+}
+
+async function printDebug(event) {
+    event.preventDefault();
+    const messageDiv = document.getElementById('message');
+    console.log("Local Storage: ", localStorage.getItem("jwtToken"));
 }
