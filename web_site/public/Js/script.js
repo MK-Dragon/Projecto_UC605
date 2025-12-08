@@ -9,7 +9,6 @@ const idInput = document.getElementById("id");
 const nameInput = document.getElementById("name");
 const catInput = document.getElementById("category");
 const qtyInput = document.getElementById("quantity");
-const priceInput = document.getElementById("price");
 
 const submitBtn = document.getElementById("submitBtn");
 const resetBtn = document.getElementById("resetBtn");
@@ -47,7 +46,7 @@ function nextProductId() {
 }
 
 
-function addProduct({ name, category, quantity, price }) {
+function addProduct({ name, category, quantity }) {
 
   const id = nextProductId();
 
@@ -55,7 +54,6 @@ function addProduct({ name, category, quantity, price }) {
     id: id,
     name: name.trim(),
     id_category: Number(category),
-    price: Number(price)
   });
 
   DB.store_stock.push({
@@ -69,13 +67,12 @@ function addProduct({ name, category, quantity, price }) {
 }
 
 
-function updateProduct(id, { name, category, quantity, price }) {
+function updateProduct(id, { name, category, quantity }) {
   const p = DB.products.find(x => x.id === id);
   if (!p) return;
 
   p.name = name.trim();
   p.id_category = Number(category);
-  p.price = Number(price);
 
   const stock = DB.store_stock.find(s => s.id_product === id);
   if (stock) stock.quant = Number(quantity);
@@ -132,7 +129,6 @@ function renderTable(filter = "") {
     row.querySelector('[data-cell="name"]').textContent = p.name;
     row.querySelector('[data-cell="category"]').textContent = getCategoryName(p.id_category);
     row.querySelector('[data-cell="quantity"]').textContent = getQuantity(p.id);
-    row.querySelector('[data-cell="price"]').textContent = p.price.toFixed(2) + " €";
 
     row.querySelector(".edit").addEventListener("click", () => loadIntoForm(p.id));
     row.querySelector(".delete").addEventListener("click", () => removeProduct(p.id));
@@ -157,7 +153,6 @@ function loadIntoForm(id) {
   nameInput.value = p.name;
   catInput.value = p.id_category;
   qtyInput.value = stock ? stock.quant : 0;
-  priceInput.value = p.price;
 
   submitBtn.textContent = "SAVE";
 }
@@ -177,7 +172,6 @@ if (form) {
       name: nameInput.value,
       category: catInput.value,
       quantity: qtyInput.value,
-      price: priceInput.value
     };
 
     if (editingId) updateProduct(Number(editingId), payload);
@@ -208,10 +202,10 @@ if (searchInput) {
 
   if (!DB.products.length) {
     DB.products = [
-      { id:1, name:"Laptop",      id_category:1, price:999 },
-      { id:2, name:"T-Shirt",     id_category:2, price:20 },
-      { id:3, name:"Chair",       id_category:3, price:45 },
-      { id:4, name:"Football",    id_category:4, price:15 }
+      { id:1, name:"Laptop",      id_category:1},
+      { id:2, name:"T-Shirt",     id_category:2 },
+      { id:3, name:"Chair",       id_category:3 },
+      { id:4, name:"Football",    id_category:4 }
     ];
 
     DB.store_stock = [
@@ -259,7 +253,6 @@ function renderProductCards() {
           <h5>${prod.name}</h5>
           <p class="mb-1"><strong>Category:</strong> ${getCategoryName(prod.id_category)}</p>
           <p class="mb-1"><strong>Stock:</strong> ${qty}</p>
-          <p class="mb-3"><strong>Price:</strong> €${prod.price}</p>
           <button class="btn btn-primary w-100 btnView" data-id="${prod.id}">View</button>
         </div>
       </div>
@@ -285,7 +278,6 @@ function openProductModal(id) {
   document.getElementById("modalName").textContent = p.name;
   document.getElementById("modalCategory").textContent = getCategoryName(p.id_category);
   document.getElementById("modalQty").textContent = s ? s.quant : 0;
-  document.getElementById("modalPrice").textContent = p.price;
 
   document.getElementById("modalEdit").onclick = () =>
     window.location.href = `index.html?edit=${p.id}`;
