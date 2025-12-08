@@ -368,3 +368,6 @@ MB_Imposter/MB/mb*
 test/
 tempCodeRunnerFile.py
 .venv
+
+web_site/package-lock.json
+web_site/package.json
