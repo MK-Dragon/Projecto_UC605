@@ -1,3 +1,5 @@
+// server.js
+
 const express = require('express');
 const path = require('path');
 const jwt = require('jsonwebtoken'); 
@@ -11,8 +13,8 @@ const httpsAgent = new https.Agent({
 });
 
 const PORT = process.env.PORT || 3000;
-//const AUTH_SERVICE_URL = "http://localhost:4545"
-const AUTH_SERVICE_URL = "https://localhost:7181"
+const AUTH_SERVICE_URL = "http://localhost:4545"
+//const AUTH_SERVICE_URL = "https://localhost:7181"
 
 const { getDataFromAPI } = require('./helper_funtions.js');
 
@@ -102,15 +104,20 @@ app.get('/api/data', authenticateToken, (req, res) => {
     });
 });
 
-app.get('/api/getproducts', authenticateToken, (req, res) => {
+app.get('/api/getproducts', authenticateToken, async (req, res) => {
     // This runs only if the token is valid
 
-    data = getDataFromAPI("/api/getproducts", token, username)
+    /*data = getDataFromAPI("/api/getproducts", token, username)
 
     res.json({ 
         message: `Bem-vindo(a), ${req.user.username}!`, 
         data: 'Dados Confidenciais do Armazém' 
-    });
+    });*/
+
+    // req.user is populated by authenticateToken middleware
+    const token = req.headers['authorization'].split(' ')[1]; 
+    const data = await getDataFromAPI("/api/getproducts", token, req.user.username);
+    res.json(data);
 });
 
 app.get('/api/getstores', authenticateToken, (req, res) => {
@@ -138,6 +145,11 @@ app.get('/', (req, res) => {
     {
         res.sendFile(path.join(__dirname, 'public', 'pages', 'index.html'));
     }
+});
+
+
+app.get('/home', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'pages', 'index.html'));
 });
 
 app.get('/login', (req, res) => {
