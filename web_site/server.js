@@ -13,8 +13,8 @@ const httpsAgent = new https.Agent({
 });
 
 const PORT = process.env.PORT || 3000;
-const AUTH_SERVICE_URL = "http://localhost:4545"
-//const AUTH_SERVICE_URL = "https://localhost:7181"
+//const AUTH_SERVICE_URL = "http://localhost:4545"
+const AUTH_SERVICE_URL = "https://localhost:7181"
 
 const { getDataFromAPI } = require('./helper_funtions.js');
 
@@ -83,9 +83,6 @@ app.post('/api/login', async (req, res) => {
                 token: "Null"
             });
         }
-
-        
-        //res.sendFile(path.join(__dirname, 'public', 'pages', 'index.html'));
 
     } catch (error) {
         console.error("Upstream Error:", error.message);

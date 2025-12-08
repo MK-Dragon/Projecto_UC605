@@ -18,9 +18,11 @@ async function loadProducts() {
     try {
         // Fazer pedido para o backend, na rota protegida /api/products
         // Aqui enviamos o token no header Authorization
-        const res = await fetch("http://localhost:3000/api/products", {
+        const res = await fetch("/api/products", {
             headers: {
-                "Authorization": "Bearer " + token
+                "Authorization": "Bearer " + token,
+                "Username": "USERNAME",
+                "Content-Type": "application/json"
             }
         });
 
@@ -63,7 +65,6 @@ function renderProducts(list) {
                 <div class="product-card p-3 shadow-sm">
                     <h5>${p.name}</h5>
                     <p>Categoria: ${p.id_category}</p>
-                    <p>Preço: ${p.price}€</p>
                     <p>Stock: ${p.quantity}</p>
                 </div>
             </div>

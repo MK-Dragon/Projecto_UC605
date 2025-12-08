@@ -56,7 +56,8 @@ async function handleLogin(event) {
             console.log("front: Login good Token: " + data.token)
             resultDiv.innerText = `message: ${data.message}`;
 
-            
+            localStorage.setItem('authToken', data.token);
+            localStorage.setItem('Username', username);
             window.location.href = "/home";
         } else {
             resultDiv.innerText = `Error: ${data.message}`;
