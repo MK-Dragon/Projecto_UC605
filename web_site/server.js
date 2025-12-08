@@ -2,8 +2,17 @@ const express = require('express');
 const path = require('path');
 const jwt = require('jsonwebtoken'); 
 const app = express();
+
+const axios = require('axios');
+const https = require('https');
+
+const httpsAgent = new https.Agent({  
+  rejectUnauthorized: false 
+});
+
 const PORT = process.env.PORT || 3000;
-const AUTH_SERVICE_URL = "http://localhost:4545"
+//const AUTH_SERVICE_URL = "http://localhost:4545"
+const AUTH_SERVICE_URL = "https://localhost:7181"
 
 const { getDataFromAPI } = require('./helper_funtions.js');
 
@@ -35,42 +44,53 @@ app.use(express.static(path.join(__dirname, 'public')));
 // 2. Define REST API routes 
 // --- 1. LOGIN ROUTE (CONNECTS TO IMPOSTER) ---
 app.post('/api/login', async (req, res) => {
-    const { username, password } = req.body;
-    
-    // 1. FORWARD CREDENTIALS TO MOUNTEBANK (The Mock Auth Service)
     try {
-        const authResponse = await fetch(`${AUTH_SERVICE_URL}/api/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
-        });
+        const { username, password } = req.body;
 
-        // 2. CHECK MOUNTEBANK'S RESPONSE
-        if (authResponse.status === 200) {
-            // Mountebank confirmed the credentials are valid!
-            
-            // 3. GENERATE a fresh, VALID JWT for the client using Express's SECRET_KEY
-            const userPayload = { id: 1, username: username }; 
-            const token = jwt.sign(userPayload, SECRET_KEY, { expiresIn: '1h' }); 
-            
-            return res.json({ 
-                message: 'Login bem-sucedido', 
-                token: token 
+        console.log("Node: " + username + " - " + password);
+
+        // Forwarding the request to the upstream RestAPI
+        const response = await axios.post( AUTH_SERVICE_URL + "/api/login", {
+            username,
+            password
+        }, { httpsAgent });
+
+        // If successful, pass the token back to the browser
+        /*res.status(200).json({
+            message: "Login successful!",
+            token: response.data.token,
+            username: response.data.username
+        });*/
+        //res.cookie('token', response.data.token, { httpOnly: true });
+        //res.redirect('/');
+        /*res.status(200).json({
+            message: "Authentication OK"
+        });*/
+
+        if (response.status === 200)
+        {
+            res.status(response.status).json({
+                message: "All Good:" + " " + response.data["token"],
+                token: response.data["token"]
             });
-
-        } else if (authResponse.status === 401) {
-            // Mountebank returned 401 (Invalid credentials)
-            const errorData = await authResponse.json();
-            return res.status(401).json({ message: errorData.message || 'Credenciais inválidas' });
-        } else {
-            // Catch other unexpected status codes from Mountebank
-            return res.status(500).json({ message: 'Erro inesperado do serviço de autenticação' });
+        }
+        else
+        {
+            res.status(response.status).json({
+                message: "Wrong user / pass",
+                token: "Null"
+            });
         }
 
+        
+        //res.sendFile(path.join(__dirname, 'public', 'pages', 'index.html'));
+
     } catch (error) {
-        // This runs if Mountebank is not running or there is a network error
-        console.error('Network Error calling Mountebank:', error);
-        return res.status(503).json({ message: 'Serviço de autenticação indisponível (Mountebank down?).' });
+        console.error("Upstream Error:", error.message);
+        res.status(error.response?.status || 500).json({
+            message: "Authentication failed",
+            error: error.message
+        });
     }
 });
 
@@ -109,7 +129,7 @@ app.get('/api/getstores', authenticateToken, (req, res) => {
 // 3. HTML page routing (Adjusted paths to 'public/pages')
 app.get('/', (req, res) => {
     // If no token or expired -> Login Page
-    if (false)
+    if (true)
     {
         res.sendFile(path.join(__dirname, 'public', 'pages', 'login.html'));
     }

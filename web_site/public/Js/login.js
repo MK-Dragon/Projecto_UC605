@@ -1,12 +1,28 @@
 // public/js/login.js
 
-document.addEventListener('DOMContentLoaded', () => {
+/*document.addEventListener('DOMContentLoaded', () => {
     // We now target the form using the ID we added in the HTML
     const form = document.getElementById('loginForm');
+    //const btn_login = document.getElementById('btn_login');
 
     if (form) {
         // Attach the event listener to the form submission
-        form.addEventListener('submit', handleLogin);
+        //form.addEventListener('submit', handleLogin);
+    }
+
+});*/
+
+document.addEventListener('DOMContentLoaded', () => {
+    const loginButton = document.getElementById('btn_login');
+
+    //console.log("Login clicked!!");
+
+    if (loginButton) {
+        loginButton.addEventListener('click', (event) => {
+            // Because it's inside a mock form, prevent default behavior
+            event.preventDefault(); 
+            handleLogin(event);
+        });
     }
 });
 
@@ -14,52 +30,37 @@ document.addEventListener('DOMContentLoaded', () => {
  * Handles the login request by sending credentials to the server.
  */
 async function handleLogin(event) {
-    event.preventDefault(); // Stop the form from submitting normally
 
-    // Get input values using the IDs we added to the HTML
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    const messageDiv = document.getElementById('message');
+    const resultDiv = document.getElementById('message');
 
-    // Clear previous message
-    messageDiv.textContent = 'A processar...';
-    messageDiv.style.color = 'gray';
+    console.log(username);
+    console.log(password);
 
     try {
         const response = await fetch('/api/login', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
         });
-        localStorage.setItem('jwtToken', "data.token: " + username + " - " + password);
 
         const data = await response.json();
 
+        console.log("html js - Status: " + response.status)
+        
         if (response.ok) {
-            // 1. Success: Store the JWT in Local Storage
-            localStorage.setItem('jwtToken', data.token);
-            
-            messageDiv.textContent = 'Login bem-sucedido! A redirecionar...';
-            messageDiv.style.color = 'green';
-            
-            // 2. Redirect the user to the main page
-            window.location.href = '/'; 
-            
+            resultDiv.innerText = `Success!\nToken: ${data.token}`;
+            // Store token in localStorage for subsequent requests
+            localStorage.setItem('authToken', data.token);
+            console.log("front: Login good Token: " + data.token)
+            resultDiv.innerText = `message: ${data.message}`;
+            //window.location.href = "/";
         } else {
-            // Failure: Display the error message from the server
-            const errorMessage = data.message || 'Falha no login. Verifique as credenciais.';
-            messageDiv.textContent = errorMessage;
-            messageDiv.style.color = 'red';
+            resultDiv.innerText = `Error: ${data.message}`;
         }
-        console.log("Local Storage: ", localStorage.getItem("jwtToken"));
-
-
-    } catch (error) {
-        console.error('Network or server error:', error);
-        messageDiv.textContent = 'Ocorreu um erro no servidor.';
-        messageDiv.style.color = 'red';
+    } catch (err) {
+        resultDiv.innerText = `Network Error: ${err.message}`;
     }
 }
 

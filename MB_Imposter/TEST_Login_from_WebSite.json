@@ -11,7 +11,7 @@
             "method": "POST",
             "path": "/api/login",
             "body": {
-              "username": "user",
+              "username": "admin",
               "password": "123"
             }
           }
