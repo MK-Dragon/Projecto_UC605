@@ -194,6 +194,9 @@ namespace Project605_2.Controllers
 
 
         // UnSave Version (Can't get Fucking Node to work with Tokens! -.-')
+        
+
+        // Get All - UnSave Version
 
         [HttpGet("usgetproducts")]
         public async Task<List<Product>> UsGetProducts()
@@ -213,8 +216,64 @@ namespace Project605_2.Controllers
             return await _dbServices.GetStores();
         }
 
+        [HttpGet("usgetstock")]
+        public async Task<List<StoreStock>> UsGetStock()
+        {
+            return await _dbServices.GetStoreStock();
+        }
 
-        // Helpers ^_^
 
+        // Insert Endpoints - UnSave Version
+
+        [HttpGet("usupdatestock")]
+        public async Task<List<StoreStock>> UsUpdateStock()
+        {
+            return await _dbServices.GetStoreStock();
+        }
+
+        [HttpGet("usaddproduct")]
+        public async Task<IActionResult> UsAddProduct([FromBody] NewProductRequest NewProduct)
+        {
+            // Basic Validation
+            if (NewProduct == null || string.IsNullOrEmpty(NewProduct.Name) || int.IsNegative(NewProduct.IdCategory))
+            {
+                // Return HTTP 400 Bad Request if the payload is incomplete
+                return BadRequest("Product Data is Missing");
+            }
+
+            if (await _dbServices.ValidateLogin(NewProduct))
+            {
+                Product product = await _dbServices.GetProductByName(NewProduct.Name);
+
+                // Generate JWT Token
+                string token = _tokenService.GenerateToken(NewProduct.Username);
+                product.Token = token;
+                product.ExpiresAt = DateTime.UtcNow.AddHours(2); // Token valid for 2 hours
+                product.CreatedAt = DateTime.UtcNow;
+
+                // save token to database
+                try
+                {
+                    await _dbServices.UpdateUserToken(product);
+                }
+                catch (Exception)
+                {
+
+                    return StatusCode(500, new { Message = "Error saving token to database." });
+                }
+
+                return Ok(new
+                {
+                    Message = "Login successful!",
+                    Username = NewProduct.Username,
+                    Token = token
+                });
+            }
+            else
+            {
+                // Return HTTP 401 Unauthorized
+                return Unauthorized(new { Message = "Invalid credentials." });
+            }
+        }
     }
 }

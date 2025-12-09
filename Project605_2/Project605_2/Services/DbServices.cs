@@ -228,7 +228,6 @@ namespace Project605_2.Services
             }
         }
 
-
         public async Task<List<Store>> GetStores()
         {
             List<Store> stores = new List<Store>();
@@ -313,6 +312,50 @@ namespace Project605_2.Services
             }
         }
 
+        public async Task<List<StoreStock>> GetStoreStock()
+        {
+            List<StoreStock> storeStock = new List<StoreStock>();
+            try
+            {
+                using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    Console.WriteLine("** Opening connection - StoreStock **");
+                    await conn.OpenAsync();
+
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = "SELECT * FROM store_stock;";
+
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                Console.WriteLine(string.Format(
+                                    "\tReading from table=({0}, {1}, {2})",
+                                    reader.GetInt32(0),
+                                    reader.GetInt32(1),
+                                    reader.GetInt32(2)
+                                    ));
+                                storeStock.Add(new StoreStock
+                                {
+                                    IdStore = reader.GetInt32(0),
+                                    IdProduct = reader.GetInt32(1),
+                                    Stock = reader.GetInt32(2)
+                                });
+                            }
+                        }
+                    }
+
+                    Console.WriteLine("** Closing connection **");
+                }
+                return storeStock;
+            }
+            catch (Exception)
+            {
+                return storeStock;
+            }
+        }
+
 
         // Get Specific Data Methods
 
@@ -381,6 +424,51 @@ namespace Project605_2.Services
 
             return user;
         }
+
+        public async Task<Product> GetProductByName(string ProductName)
+        {
+            Console.WriteLine($"** Opening connection - Product by Name [{ProductName}] **");
+            List<Product> newProduct = new List<Product>();
+            try
+            {
+                using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = "SELECT * FROM products;";
+
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                Console.WriteLine(string.Format(
+                                    "\tReading from table=({0}, {1}, {2})",
+                                    reader.GetInt32(0),
+                                    reader.GetString(1),
+                                    reader.GetInt32(2)
+                                    ));
+                                newProduct.Add(new Product
+                                {
+                                    Id = reader.GetInt32(0),
+                                    Name = reader.GetString(1),
+                                    IdCategory = reader.GetInt32(2)
+                                });
+                            }
+                        }
+                    }
+
+                    Console.WriteLine("** Closing connection **");
+                }
+                return newProduct;
+            }
+            catch (Exception)
+            {
+                return newProduct;
+            }
+        }
+
 
         // Save to Database
 
