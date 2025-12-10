@@ -284,5 +284,48 @@ namespace Project605_2.Controllers
                 return StatusCode(500, new { Message = "Error retrieving product from database after insertion." });
             }
         }
+
+        [HttpPost("usaddcategory")]
+        public async Task<IActionResult> UsAddCategory([FromBody] NewCategoryRequest NewCategory)
+        {
+            // Basic Validation
+            if (NewCategory == null || string.IsNullOrEmpty(NewCategory.Name))
+            {
+                // Return HTTP 400 Bad Request if the payload is incomplete
+                return BadRequest("Product Data is Missing");
+            }
+
+            // Check Category Exists
+            Category check_category = await _dbServices.GetCategoryByName(NewCategory.Name); // checking if null did not work...
+            if (check_category != null)
+            {
+                // Return HTTP 401 Unauthorized
+                return Unauthorized(new { Message = "Category Already Exist." });
+            }
+
+            // Passed Tests -> Save to DB
+
+            // save product to database
+            try
+            {
+                await _dbServices.AddCategory(NewCategory);
+            }
+            catch (Exception)
+            {
+
+                return StatusCode(500, new { Message = "Error saving category to database." });
+            }
+
+            // try to retrieve the inserted product
+            try
+            {
+                Category category = await _dbServices.GetCategoryByName(NewCategory.Name);
+                return Ok(category);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Error retrieving category from database after insertion." });
+            }
+        }
     }
 }
