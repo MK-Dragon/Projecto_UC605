@@ -15,8 +15,8 @@ const httpsAgent = new https.Agent({
 });
 
 const PORT = process.env.PORT || 3000;
-//const AUTH_SERVICE_URL = "http://localhost:4545" // Imposter
-const AUTH_SERVICE_URL = "https://localhost:7181" // RestAPI
+const AUTH_SERVICE_URL = "http://localhost:4545" // Imposter
+//const AUTH_SERVICE_URL = "https://localhost:7181" // RestAPI
 
 //const { getDataFromAPI } = require('./helper_funtions.js');
 

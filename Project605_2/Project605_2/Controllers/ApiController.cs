@@ -241,7 +241,7 @@ namespace Project605_2.Controllers
                 return BadRequest("Product Data is Missing");
             }
 
-            if (await _dbServices.ValidateLogin(NewProduct))
+            if (await _dbServices.GetProductByName(NewProduct.Name) == null)
             {
                 Product product = await _dbServices.GetProductByName(NewProduct.Name);
 
@@ -272,7 +272,7 @@ namespace Project605_2.Controllers
             else
             {
                 // Return HTTP 401 Unauthorized
-                return Unauthorized(new { Message = "Invalid credentials." });
+                return Unauthorized(new { Message = "Item Already Exists." });
             }
         }
     }

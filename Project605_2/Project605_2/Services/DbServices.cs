@@ -428,7 +428,7 @@ namespace Project605_2.Services
         public async Task<Product> GetProductByName(string ProductName)
         {
             Console.WriteLine($"** Opening connection - Product by Name [{ProductName}] **");
-            List<Product> newProduct = new List<Product>();
+            Product newProduct = new Product();
             try
             {
                 using (var conn = new MySqlConnection(Builder.ConnectionString))
@@ -449,7 +449,7 @@ namespace Project605_2.Services
                                     reader.GetString(1),
                                     reader.GetInt32(2)
                                     ));
-                                newProduct.Add(new Product
+                                newProduct = (new Product
                                 {
                                     Id = reader.GetInt32(0),
                                     Name = reader.GetString(1),
@@ -470,7 +470,7 @@ namespace Project605_2.Services
         }
 
 
-        // Save to Database
+        // Update Data Methods
 
         public async Task UpdateUserToken(User user)
         {
@@ -496,6 +496,50 @@ namespace Project605_2.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating user token: {ex.Message}");
+            }
+        }
+
+
+        // Insert Data Methods
+
+        public async Task AddProduct(Product product)
+        {
+            Console.WriteLine("** Opening connection - AddProduct **");
+
+            // 1. Define the SQL INSERT statement
+            // We are inserting into 'products' and specifying 'name' and 'id_category'.
+            // We use parameters (@name, @id_category) to prevent SQL injection.
+            const string insertSql =
+                "INSERT INTO products (name, id_category) " +
+                "VALUES (@name, @id_category);";
+
+            try
+            {
+                // Assuming 'Builder.ConnectionString' is accessible and correct
+                using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = insertSql;
+
+                        // 2. Map the Product C# properties to the SQL parameters
+                        command.Parameters.AddWithValue("@name", product.Name);
+                        command.Parameters.AddWithValue("@id_category", product.IdCategory);
+
+                        // 3. Execute the command
+                        int rowsAffected = await command.ExecuteNonQueryAsync();
+
+                        Console.WriteLine($"\tProduct '{product.Name}' inserted. Rows affected: {rowsAffected}");
+                    }
+                }
+                Console.WriteLine("** Closing connection **");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inserting product: {ex.Message}");
+                // Optionally re-throw the exception if the caller needs to handle failure
+                // throw;
             }
         }
     }

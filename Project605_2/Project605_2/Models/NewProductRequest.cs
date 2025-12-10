@@ -2,5 +2,7 @@
 {
     public class NewProductRequest
     {
+        public string Name { get; set; }
+        public int IdCategory { get; set; }
     }
 }
