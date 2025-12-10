@@ -4,6 +4,7 @@ using System.Data;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System;
+using static System.String;
 
 namespace Project605_2.Services
 {
@@ -86,44 +87,53 @@ namespace Project605_2.Services
 
         public async Task<bool> ValidateLogin(LoginRequest user)
         {
-            Console.WriteLine("** Opening connection - ValidateLogin **");
+            // Define the SQL query 
+            const string sqlQuery = "SELECT COUNT(*) FROM users WHERE Username = @username AND Password = @password;";
 
-            bool login_ok = false;
+            Console.WriteLine("** Opening connection - ValidateLogin **");
+            bool loginOk = false;
+
             try
             {
-                using (var conn = new MySqlConnection(Builder.ConnectionString))
+                await using (var conn = new MySqlConnection(Builder.ConnectionString))
                 {
                     await conn.OpenAsync();
 
-                    using (var command = conn.CreateCommand())
+                    await using (var command = conn.CreateCommand())
                     {
-                        command.CommandText = "SELECT * FROM users;";
+                        command.CommandText = sqlQuery;
 
-                        using (var reader = await command.ExecuteReaderAsync())
+                        // Add parameters to prevent SQL Injection
+                        command.Parameters.AddWithValue("@username", user.Username);
+                        command.Parameters.AddWithValue("@password", user.Password);
+
+                        // ExecuteScalarAsync is best for retrieving a single value (like COUNT)
+                        // It returns the first column of the first row (or null if no rows)
+                        var result = await command.ExecuteScalarAsync();
+
+                        // Check the result. If a matching row was found, COUNT(*) will be 1.
+                        // We use pattern matching (C# 9+) for clean type and null check
+                        if (result is long count && count > 0)
                         {
-                            while (await reader.ReadAsync())
-                            {
-                                Console.WriteLine(string.Format(
-                                    "\tReading from table=({0}, {1})",
-                                    reader.GetInt32(0),
-                                    reader.GetString(1),
-                                    reader.GetString(2)
-                                    ));
-                                if (user.Username == reader.GetString(1) &&
-                                    user.Password == reader.GetString(2))
-                                {
-                                    login_ok = true;
-                                }
-                            }
+                            loginOk = true;
+                            Console.WriteLine($"\tLogin successful for user: {user.Username}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"\tLogin failed for user: {user.Username}. No matching record found.");
                         }
                     }
                     Console.WriteLine("** Closing connection **");
                 }
-                return login_ok;
+                return loginOk;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return login_ok;
+                // 6. Log the exception details for debugging, but don't expose them to the user.
+                Console.WriteLine($"\tAn error occurred during login validation: {ex.Message}");
+
+                // In case of any database error, treat it as a failed login attempt.
+                return false;
             }
         }
 
@@ -428,44 +438,135 @@ namespace Project605_2.Services
         public async Task<Product> GetProductByName(string ProductName)
         {
             Console.WriteLine($"** Opening connection - Product by Name [{ProductName}] **");
-            Product newProduct = new Product();
+
+            // 1. Define the SQL query using a parameter for the product name
+            const string sqlQuery = "SELECT id, name, id_category FROM products WHERE name = @productName LIMIT 1;";
+
+            // Initialize the product to null or a default state (null is better for "not found")
+            Product product = null;
+
+            // Guard clause for invalid input
+            if (IsNullOrEmpty(ProductName))
+            {
+                Console.WriteLine("\tProduct name cannot be empty.");
+                return null;
+            }
+
             try
             {
-                using (var conn = new MySqlConnection(Builder.ConnectionString))
+                await using (var conn = new MySqlConnection(Builder.ConnectionString))
                 {
                     await conn.OpenAsync();
 
-                    using (var command = conn.CreateCommand())
+                    await using (var command = conn.CreateCommand())
                     {
-                        command.CommandText = "SELECT * FROM products;";
+                        command.CommandText = sqlQuery;
 
-                        using (var reader = await command.ExecuteReaderAsync())
+                        // 2. Add the parameter to prevent SQL Injection
+                        // Ensure the parameter name (@productName) matches the query.
+                        command.Parameters.AddWithValue("@productName", ProductName);
+
+                        await using (var reader = await command.ExecuteReaderAsync())
                         {
-                            while (await reader.ReadAsync())
+                            // 3. We expect at most one row, so we just check if ReadAsync returns true once
+                            if (await reader.ReadAsync())
                             {
-                                Console.WriteLine(string.Format(
-                                    "\tReading from table=({0}, {1}, {2})",
-                                    reader.GetInt32(0),
-                                    reader.GetString(1),
-                                    reader.GetInt32(2)
-                                    ));
-                                newProduct = (new Product
+                                // 4. Map the data to the Product object
+                                product = new Product
                                 {
+                                    // It's generally safer to get data by column name if possible, 
+                                    // but using indexes (0, 1, 2) is acceptable if you are certain of the column order.
+                                    // Assuming your columns are in order: Id (0), Name (1), IdCategory (2)
                                     Id = reader.GetInt32(0),
                                     Name = reader.GetString(1),
                                     IdCategory = reader.GetInt32(2)
-                                });
+                                };
+
+                                Console.WriteLine($"\tFound product: ({product.Id}, {product.Name}, {product.IdCategory})");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"\tProduct with name '{ProductName}' not found.");
                             }
                         }
                     }
-
                     Console.WriteLine("** Closing connection **");
                 }
-                return newProduct;
+                return product;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return newProduct;
+                // Log the exception details for debugging
+                Console.WriteLine($"\tAn error occurred while retrieving product: {ex.Message}");
+                // Return null to signal that the product could not be retrieved due to an error.
+                return null;
+            }
+        }
+
+        public async Task<Category> GetCategoryById(int CategoryId)
+        {
+            Console.WriteLine($"** Opening connection - Category by ID [{CategoryId}] **");
+
+            // 1. SQL Query: Select columns from 'categories' where the 'id' matches the parameter.
+            const string sqlQuery = "SELECT id, name FROM categories WHERE id = @categoryId LIMIT 1;";
+
+            // Initialize the category to null (best practice for "not found")
+            Category category = null;
+
+            // Guard clause for invalid input
+            if (CategoryId <= 0)
+            {
+                Console.WriteLine("\tCategory ID must be a positive integer.");
+                return null;
+            }
+
+            try
+            {
+                // Use 'await using' for automatic disposal (C# 8+)
+                await using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+
+                    await using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = sqlQuery;
+
+                        // 2. Add the parameter to prevent SQL Injection
+                        // We map the C# variable CategoryId to the SQL parameter @categoryId.
+                        command.Parameters.AddWithValue("@categoryId", CategoryId);
+
+                        await using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            // 3. Check if a row was returned (we expect at most one)
+                            if (await reader.ReadAsync())
+                            {
+                                // 4. Map the data to the Category object
+                                category = new Category
+                                {
+                                    // Using column names is safer than indexes if columns change order, 
+                                    // but using indexes (0, 1) is fine based on the query order.
+                                    Id = reader.GetInt32(0),   // 'id' is the first column
+                                    Name = reader.GetString(1) // 'name' is the second column
+                                };
+
+                                Console.WriteLine($"\tFound category: ({category.Id}, {category.Name})");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"\tCategory with ID '{CategoryId}' not found.");
+                            }
+                        }
+                    }
+                    Console.WriteLine("** Closing connection **");
+                }
+                return category;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details for debugging
+                Console.WriteLine($"\tAn error occurred while retrieving category: {ex.Message}");
+                // Return null on error
+                return null;
             }
         }
 
@@ -502,7 +603,7 @@ namespace Project605_2.Services
 
         // Insert Data Methods
 
-        public async Task AddProduct(Product product)
+        public async Task AddProduct(NewProductRequest product)
         {
             Console.WriteLine("** Opening connection - AddProduct **");
 

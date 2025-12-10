@@ -33,6 +33,8 @@ class TestAPI():
         warnings.filterwarnings("ignore", category=requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
 
+    # Logins
+
     # Test Case 1: Failed Login Login (401)
     def test_01_login_fail(self):
         print("\nTestlogin with code 401 and captures the token:")
@@ -98,6 +100,8 @@ class TestAPI():
             #self.fail(f"Test failed: Received 200 but response was not valid JSON. Response text: {response.text}")
             print(f"\tError: {e}")
 
+
+    # Get Data - With Tokens Working Perfectly!
 
     def test_03_get_products_with_Token(self):
         print("\nTestlogin with code 200:")
@@ -196,6 +200,33 @@ class TestAPI():
             print(f"\tError: {e}")
 
 
+    # Inserts - NO TOKENS!!
+
+    def test_07_post_add_product(self):
+        print("\nTest Add Product with code 200:")
+
+        try:
+            url = SERVER_IP + "/api/usaddproduct"
+        
+            # 1. Prepare and execute the request, disabling SSL verification
+            data = {"Name": "Raspberry Pi 5", "IdCategory": 2}
+            response = requests.post(url, json=data, timeout=10, verify=False)
+            
+            # 2. Assertions
+            # Ensure the test fails if the server is unreachable or SSL fails
+            #response.raise_for_status() 
+            
+            print(f"\tExpected status code 200 -> Got {response.status_code}")
+
+            response_json = response.json()
+            if response.status_code != 200:
+                print(f"\t\tError: {response_json.get("message")}")
+            else:
+                print(f"\t\t> [{response_json["id"]}] {response_json["name"]} - {response_json["idCategory"]}")
+            
+        except Exception as e:
+            #self.fail(f"Test failed: Received 200 but response was not valid JSON. Response text: {response.text}")
+            print(f"\tError: {e}")
 
 
 def makeSpacer(title:str = ""):
@@ -219,5 +250,6 @@ if __name__ == '__main__':
     makeSpacer("Store and Categories")
     test.test_05_get_categories_with_Token()
     test.test_06_get_stores_with_Token()
+    test.test_07_post_add_product()
 
     makeSpacer("???")

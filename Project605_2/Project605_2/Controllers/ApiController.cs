@@ -234,7 +234,7 @@ namespace Project605_2.Controllers
 
         // Insert - UnSave Version
 
-        /*[HttpGet("usaddproduct")]
+        [HttpPost("usaddproduct")]
         public async Task<IActionResult> UsAddProduct([FromBody] NewProductRequest NewProduct)
         {
             // Basic Validation
@@ -244,39 +244,45 @@ namespace Project605_2.Controllers
                 return BadRequest("Product Data is Missing");
             }
 
-            if (await _dbServices.GetProductByName(NewProduct.Name) == null)
-            {
-                Product product = await _dbServices.GetProductByName(NewProduct.Name);
-
-                // Generate JWT Token
-                string token = _tokenService.GenerateToken(NewProduct.Username);
-                product.Token = token;
-                product.ExpiresAt = DateTime.UtcNow.AddHours(2); // Token valid for 2 hours
-                product.CreatedAt = DateTime.UtcNow;
-
-                // save token to database
-                try
-                {
-                    await _dbServices.UpdateUserToken(product);
-                }
-                catch (Exception)
-                {
-
-                    return StatusCode(500, new { Message = "Error saving token to database." });
-                }
-
-                return Ok(new
-                {
-                    Message = "Login successful!",
-                    Username = NewProduct.Username,
-                    Token = token
-                });
-            }
-            else
+            // Validate if Product Exists
+            Product check_product = await _dbServices.GetProductByName(NewProduct.Name); // checking if null did not work...
+            if (check_product != null)
             {
                 // Return HTTP 401 Unauthorized
                 return Unauthorized(new { Message = "Item Already Exists." });
             }
-        }*/
+
+            // Check Category Exists
+            Category check_category = await _dbServices.GetCategoryById(NewProduct.IdCategory); // checking if null did not work...
+            if (check_category == null)
+            {
+                // Return HTTP 401 Unauthorized
+                return Unauthorized(new { Message = "Category Does NOT Exist." });
+            }
+
+            // Passed Tests -> Save to DB
+
+            // save product to database
+            try
+            {
+                await _dbServices.AddProduct(NewProduct);
+            }
+            catch (Exception)
+            {
+
+                return StatusCode(500, new { Message = "Error saving product to database. Check if Category ID Exists." });
+            }
+
+            // try to retrieve the inserted product
+            try
+            {
+                Product product = await _dbServices.GetProductByName(NewProduct.Name);
+                return Ok(product);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Error retrieving product from database after insertion." });
+            }
+        }
     }
 }
