@@ -13,12 +13,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const res = await fetch("http://localhost:5041/api/usaddproduct", {
+      const res = await fetch("http://localhost:3000/api/addproduct", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: name,
-          idCategory: parseInt(categoryId)
+          proName: name,              // <-- campo usado no server.js
+          catId: parseInt(categoryId) // <-- campo usado no server.js
         })
       });
 
@@ -43,7 +43,7 @@ async function loadCategories() {
   const categorySelect = document.getElementById("categorySelect");
 
   try {
-    const res = await fetch("http://localhost:5041/api/usgetcategories");
+    const res = await fetch("http://localhost:3000/api/getcategories"); // <-- via node.js
     const categories = await res.json();
 
     categories.forEach(cat => {
