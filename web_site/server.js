@@ -15,8 +15,8 @@ const httpsAgent = new https.Agent({
 });
 
 const PORT = process.env.PORT || 3000;
-const AUTH_SERVICE_URL = "http://localhost:4545" // Imposter
-//const AUTH_SERVICE_URL = "https://localhost:7181" // RestAPI
+//const AUTH_SERVICE_URL = "http://localhost:4545" // Imposter
+const AUTH_SERVICE_URL = "https://localhost:7181" // RestAPI
 
 //const { getDataFromAPI } = require('./helper_funtions.js');
 
@@ -261,10 +261,39 @@ app.get('/api/getstores', async (req, res) => {
     }
 });
 
+app.get('/api/getinventory', async (req, res) => {
+    console.log("Node: Fetching Inventory from .NET (No Token)...");
+
+    try {
+        const response = await axios.get(`${AUTH_SERVICE_URL}/api/usgetstock`, {
+            // This is required because you are using https and localhost
+            httpsAgent: httpsAgent, 
+            headers: { 
+                'Content-Type': 'application/json' 
+            }
+        });
+
+        // Send the data back to your browser
+        res.status(200).json(response.data);
+
+    } catch (error) {
+        // Detailed logging in your terminal
+        if (error.response) {
+            console.error(".NET Server returned error:", error.response.status);
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            console.error("Connection Error:", error.message);
+            res.status(500).json({ error: "Could not connect to .NET API" });
+        }
+    }
+});
 
 
 
-// 3. HTML page routing (Adjusted paths to 'public/pages')
+
+// Page Routing!
+
+
 app.get('/', (req, res) => {
     // If no token or expired -> Login Page
     if (true)
@@ -277,7 +306,6 @@ app.get('/', (req, res) => {
         res.sendFile(path.join(__dirname, 'public', 'pages', 'index.html'));
     }
 });
-
 
 app.get('/home', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'pages', 'index.html'));
@@ -293,6 +321,10 @@ app.get('/products', (req, res) => {
 
 app.get('/inventory', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'pages', 'inventory.html'));
+});
+
+app.get('/add_product', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'pages', 'add_product.html'));
 });
 
 

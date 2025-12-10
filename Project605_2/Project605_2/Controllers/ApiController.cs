@@ -146,7 +146,7 @@ namespace Project605_2.Controllers
         }
 
 
-        // Get All
+        // Get All - with Token Validation
 
         [HttpGet("getproducts")]
         public async Task<IActionResult> GetProducts()
@@ -223,7 +223,7 @@ namespace Project605_2.Controllers
         }
 
 
-        // Insert Endpoints - UnSave Version
+        // Update - UnSave Version
 
         [HttpGet("usupdatestock")]
         public async Task<List<StoreStock>> UsUpdateStock()
@@ -231,7 +231,10 @@ namespace Project605_2.Controllers
             return await _dbServices.GetStoreStock();
         }
 
-        [HttpGet("usaddproduct")]
+
+        // Insert - UnSave Version
+
+        /*[HttpGet("usaddproduct")]
         public async Task<IActionResult> UsAddProduct([FromBody] NewProductRequest NewProduct)
         {
             // Basic Validation
@@ -274,6 +277,6 @@ namespace Project605_2.Controllers
                 // Return HTTP 401 Unauthorized
                 return Unauthorized(new { Message = "Item Already Exists." });
             }
-        }
+        }*/
     }
 }
