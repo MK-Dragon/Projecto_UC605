@@ -291,6 +291,33 @@ app.get('/api/getinventory', async (req, res) => {
     }
 });
 
+app.get('/api/getcategories', async (req, res) => {
+    console.log("Node: Fetching Inventory from .NET (No Token)...");
+
+    try {
+        const response = await axios.get(`${AUTH_SERVICE_URL}/api/usgetcategories`, {
+            // This is required because you are using https and localhost
+            httpsAgent: httpsAgent, 
+            headers: { 
+                'Content-Type': 'application/json' 
+            }
+        });
+
+        // Send the data back to your browser
+        res.status(200).json(response.data);
+
+    } catch (error) {
+        // Detailed logging in your terminal
+        if (error.response) {
+            console.error(".NET Server returned error:", error.response.status);
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            console.error("Connection Error:", error.message);
+            res.status(500).json({ error: "Could not connect to .NET API" });
+        }
+    }
+});
+
 
 // Insert Data (work in progress)
 
