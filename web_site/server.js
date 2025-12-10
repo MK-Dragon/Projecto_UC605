@@ -104,8 +104,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-// 2. Define REST API routes 
-// --- 1. LOGIN ROUTE (CONNECTS TO IMPOSTER) ---
+// Login API Calls
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -141,6 +140,8 @@ app.post('/api/login', async (req, res) => {
         });
     }
 });
+
+
 
 /*app.get('/api/data', authenticateToken, (req, res) => {
     // This runs only if the token is valid
@@ -207,8 +208,10 @@ app.get('/api/getstores', authenticateToken, (req, res) => {
 
 // UnSave Endpoints Becase I hate wasting days debuging ghosts! -.-'
 
+// Get Data
+
 app.get('/api/getproducts', async (req, res) => {
-    console.log("Node: Fetching products from .NET (No Token)...");
+    console.log("Node [getproducts]: Fetching products from .NET (No Token)...");
 
     try {
         const response = await axios.get(`${AUTH_SERVICE_URL}/api/usgetproducts`, {
@@ -289,6 +292,45 @@ app.get('/api/getinventory', async (req, res) => {
 });
 
 
+// Insert Data (work in progress)
+
+app.post('/api/addproduct', async (req, res) => {
+    try {
+        const { proName, catId } = req.body;
+
+        console.log(`Node [addproduct]: ${proName} - ${catId}`);
+
+        // Forwarding the request to the upstream RestAPI
+        const response = await axios.post(
+            AUTH_SERVICE_URL + "/api/usaddproduct", 
+            { proName, catId }, 
+            { httpsAgent }
+        );
+
+        // Success: Forward the exact status code and data from the C# API
+        // This handles 200 OK, 201 Created, etc.
+        res.status(response.status).json(response.data);
+        
+    } catch (error) {
+        // --- IMPROVED ERROR HANDLING ---
+        
+        // Log the error detail for the Node.js server
+        console.error("Upstream Error:", error.message);
+
+        // Extract the status and data from the C# API's response error
+        const status = error.response?.status || 500;
+        
+        // Default message for errors without a C# response (e.g., network failure)
+        const data = error.response?.data || { 
+            message: `Failed to connect to C# API: ${error.message}` 
+        };
+
+        // Forward the correct status and the error data to the frontend
+        res.status(status).json(data);
+    }
+});
+
+// Update Data (work in progress)
 
 
 // Page Routing!
