@@ -291,6 +291,10 @@ app.get('/products', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'pages', 'products.html'));
 });
 
+app.get('/inventory', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'pages', 'inventory.html'));
+});
+
 
 
 // Start the server
