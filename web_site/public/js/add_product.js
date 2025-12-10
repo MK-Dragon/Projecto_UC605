@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const res = await fetch("http://localhost:3000/api/addproduct", {
+      const res = await fetch("/api/addproduct", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -43,14 +43,17 @@ async function loadCategories() {
   const categorySelect = document.getElementById("categorySelect");
 
   try {
-    const res = await fetch("http://localhost:3000/api/getcategories"); // <-- via node.js
+    const res = await fetch("/api/getcategories"); // <-- via node.js
     const categories = await res.json();
 
+    console.log("\n\nLoad Cat:")
     categories.forEach(cat => {
       const opt = document.createElement("option");
       opt.value = cat.id;
       opt.textContent = cat.name;
       categorySelect.appendChild(opt);
+
+      console.log(`\t[${cat.id}] ${cat.name}`)
     });
   } catch (err) {
     console.error("Erro ao carregar categorias:", err);
