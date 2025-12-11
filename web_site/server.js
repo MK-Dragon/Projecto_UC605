@@ -359,7 +359,7 @@ app.post('/api/addproduct', async (req, res) => {
 
 app.post('/api/addcategory', async (req, res) => {
     try {
-        const { proName: catName } = req.body;
+       const { name: catName } = req.body;  //alterei isto AQUI o gepeto mandou!
 
         console.log(`Node [addcategory]: ${catName}`);
 
