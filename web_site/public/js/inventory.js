@@ -12,6 +12,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!res.ok) throw new Error("Erro ao buscar inventário");
     originalData = await res.json();
     renderTable(originalData);
+
+    console.log("Inv Load:")
+    originalData.forEach(item => {
+      console.log(item);
+      console.log(`${item.productName} - ${item.storeName } - ${item.stock} - ${item.categoryName}`);
+    });
+
     populateStoreFilter(originalData);
     msg.textContent = "Dados carregados!";
     msg.style.color = "green";
@@ -45,21 +52,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!isNaN(minQty)) filtered = filtered.filter(i => i.quantity >= minQty);
 
     switch (sortBy) {
-      case "name_az": filtered.sort((a, b) => a.name.localeCompare(b.name)); break;
-      case "name_za": filtered.sort((a, b) => b.name.localeCompare(a.name)); break;
-      case "qty_low_high": filtered.sort((a, b) => a.quantity - b.quantity); break;
-      case "qty_high_low": filtered.sort((a, b) => b.quantity - a.quantity); break;
-      case "category": filtered.sort((a, b) => a.category.localeCompare(b.category)); break;
+      case "name_az": filtered.sort((a, b) => a.productName.localeCompare(b.productName)); break;
+      case "name_za": filtered.sort((a, b) => b.productName.localeCompare(a.productName)); break;
+      case "qty_low_high": filtered.sort((a, b) => a.stock - b.stock); break;
+      case "qty_high_low": filtered.sort((a, b) => b.stock - a.stock); break;
+      case "category": filtered.sort((a, b) => a.categoryName.localeCompare(b.categoryName)); break;
     }
 
     tableBody.innerHTML = "";
     filtered.forEach(item => {
       tableBody.innerHTML += `
         <tr>
-          <td>${item.name}</td>
-          <td>${item.store}</td>
-          <td>${item.quantity}</td>
-          <td>${item.category}</td>
+          <td>${item.productName}</td>
+          <td>${item.storeName}</td>
+          <td>${item.stock}</td>
+          <td>${item.categoryName}</td>
         </tr>
       `;
     });

@@ -323,9 +323,9 @@ namespace Project605_2.Services
             }
         }
 
-        public async Task<List<StoreStock>> GetStoreStock()
+        public async Task<List<InventoryRequested>> GetStoreStock()
         {
-            List<StoreStock> storeStock = new List<StoreStock>();
+            List<InventoryRequested> storeStock = new List<InventoryRequested>();
             try
             {
                 using (var conn = new MySqlConnection(Builder.ConnectionString))
@@ -335,7 +335,8 @@ namespace Project605_2.Services
 
                     using (var command = conn.CreateCommand())
                     {
-                        command.CommandText = /*SELECT
+                        command.CommandText = @"
+SELECT
     s.id AS store_id,
     s.name AS store_name,
     p.id AS product_id,
@@ -350,23 +351,31 @@ JOIN
 JOIN
     products p ON ss.id_product = p.id
 JOIN
-    categories c ON p.id_category = c.id;*/;
+    categories c ON p.id_category = c.id;";
 
                         using (var reader = await command.ExecuteReaderAsync())
                         {
                             while (await reader.ReadAsync())
                             {
                                 Console.WriteLine(string.Format(
-                                    "\tReading from table=({0}, {1}, {2})",
-                                    reader.GetInt32(0),
-                                    reader.GetInt32(1),
-                                    reader.GetInt32(2)
+                                    "\tReading from table=({0}, {1}, {2}, {3}, {4}, {5}, {6})",
+                                    reader.GetInt32(0), // IdStore
+                                    reader.GetString(1), // Store Name
+                                    reader.GetInt32(2), // IdProduct
+                                    reader.GetString(3), // Product Name
+                                    reader.GetInt32(4), // IdCategory
+                                    reader.GetString(5), // Category Name
+                                    reader.GetInt32(6)  // Stock
                                     ));
-                                storeStock.Add(new StoreStock
+                                storeStock.Add(new InventoryRequested
                                 {
                                     IdStore = reader.GetInt32(0),
-                                    IdProduct = reader.GetInt32(1),
-                                    Stock = reader.GetInt32(2)
+                                    StoreName = reader.GetString(1),
+                                    IdProduct = reader.GetInt32(2),
+                                    ProductName = reader.GetString(3),
+                                    IdCategory = reader.GetInt32(4),
+                                    CategoryName = reader.GetString(5),
+                                    Stock = reader.GetInt32(6)
                                 });
                             }
                         }

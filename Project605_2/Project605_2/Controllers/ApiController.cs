@@ -217,7 +217,7 @@ namespace Project605_2.Controllers
         }
 
         [HttpGet("usgetstock")]
-        public async Task<List<StoreStock>> UsGetStock()
+        public async Task<List<InventoryRequested>> UsGetStock()
         {
             return await _dbServices.GetStoreStock();
         }
