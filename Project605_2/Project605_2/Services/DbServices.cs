@@ -192,6 +192,7 @@ namespace Project605_2.Services
             }
         }
 
+
         // Get All Data Methods
 
         public async Task<List<Product>> GetProducts()
@@ -334,7 +335,22 @@ namespace Project605_2.Services
 
                     using (var command = conn.CreateCommand())
                     {
-                        command.CommandText = "SELECT * FROM store_stock;";
+                        command.CommandText = /*SELECT
+    s.id AS store_id,
+    s.name AS store_name,
+    p.id AS product_id,
+    p.name AS product_name,
+    c.id AS category_id,
+    c.name AS category_name,
+    ss.quant AS quantity
+FROM
+    store_stock ss
+JOIN
+    stores s ON ss.id_store = s.id
+JOIN
+    products p ON ss.id_product = p.id
+JOIN
+    categories c ON p.id_category = c.id;*/;
 
                         using (var reader = await command.ExecuteReaderAsync())
                         {
@@ -365,6 +381,7 @@ namespace Project605_2.Services
                 return storeStock;
             }
         }
+
 
 
         // Get Specific Data Methods
@@ -705,7 +722,6 @@ namespace Project605_2.Services
                 return null;
             }
         }
-
 
 
         // Update Data Methods

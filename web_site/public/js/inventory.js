@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let originalData = [];
 
   try {
-    const res = await fetch("/api/getinventory"); // ⚠️ Ajusta o endpoint no server.js se necessário
+    const res = await fetch("/api/getinventory");
     if (!res.ok) throw new Error("Erro ao buscar inventário");
     originalData = await res.json();
     renderTable(originalData);

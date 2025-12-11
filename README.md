@@ -144,11 +144,3 @@ pip install requests
 
 <br><br><hr><hr><br><br>
 
-
-# Road Map
-
-Main:
-- Criar Backend para falar com a RastAPI
-- ligar front e back ends
-- Autenticação e JWTs
-- Criar a RastAPI

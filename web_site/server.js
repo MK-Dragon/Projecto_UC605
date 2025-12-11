@@ -65,9 +65,6 @@ async function getDataFromAPI(url, token, username) {
 
 
 
-
-
-
 // --- JWT Authentication Middleware ---
 function authenticateToken(req, res, next) {
     /*const authHeader = req.headers['authorization'];
