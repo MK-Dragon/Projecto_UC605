@@ -325,12 +325,12 @@ app.post('/api/addproduct', async (req, res) => {
     try {
         const { proName, catId } = req.body;
 
-        console.log(`Node [addproduct]: ${proName} - ${catId}`);
+        //console.log(`Node [addproduct]: ${proName} - ${catId}`);
 
         // Forwarding the request to the upstream RestAPI
         const response = await axios.post(
             AUTH_SERVICE_URL + "/api/usaddproduct", 
-            { proName, catId }, 
+            { name: proName, idcategory: catId }, 
             { httpsAgent }
         );
 
@@ -342,7 +342,7 @@ app.post('/api/addproduct', async (req, res) => {
         // --- IMPROVED ERROR HANDLING ---
         
         // Log the error detail for the Node.js server
-        console.error("Upstream Error:", error.message);
+        //console.error("Upstream Error:", error.message);
 
         // Extract the status and data from the C# API's response error
         const status = error.response?.status || 500;
