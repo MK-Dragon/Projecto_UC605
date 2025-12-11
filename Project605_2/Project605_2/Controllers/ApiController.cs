@@ -225,10 +225,53 @@ namespace Project605_2.Controllers
 
         // Update - UnSave Version
 
-        [HttpGet("usupdatestock")]
-        public async Task<List<StoreStock>> UsUpdateStock()
+        [HttpPost("usupdatestock")]
+        public async Task<IActionResult> UsUpdateStock([FromBody] StoreStock Inventory)
         {
-            return await _dbServices.GetStoreStock();
+            // Basic Validation
+            if (Inventory == null || int.IsNegative(Inventory.IdStore) || int.IsNegative(Inventory.IdProduct))
+            {
+                // Return HTTP 400 Bad Request if the payload is incomplete
+                return BadRequest("StoreStock Data is Missing");
+            }
+
+            // Validate if Inventory Exists
+            StoreStock check_invetory = await _dbServices.GetStoreStockById(Inventory.IdStore, Inventory.IdProduct); // checking if null did not work...
+            if (check_invetory == null)
+            {
+                try
+                {
+                    await _dbServices.AddStoreStock(Inventory);
+                }
+                catch (Exception)
+                {
+
+                    return StatusCode(500, new { Message = "Error saving StoreStock to database. Check if Store and Product ID Exists." });
+                }
+            }
+            else
+            {
+                try
+                {
+                    await _dbServices.UpdateStoreStock(Inventory);
+                }
+                catch (Exception)
+                {
+
+                    return StatusCode(500, new { Message = "Error updating StoreStock to database. Check if Store and Product ID Exists." });
+                }
+            }
+
+            try
+            {
+                StoreStock check_inv = await _dbServices.GetStoreStockById(Inventory.IdStore, Inventory.IdProduct);
+                return Ok(check_inv);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Error retrieving Inventory from database after insertion." });
+            }
+
         }
 
 

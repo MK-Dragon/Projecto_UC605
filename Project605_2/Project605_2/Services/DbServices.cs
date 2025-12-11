@@ -637,6 +637,76 @@ namespace Project605_2.Services
             }
         }
 
+        public async Task<StoreStock> GetStoreStockById(int id_store, int id_product)
+        {
+            Console.WriteLine($"** Opening connection - Store Stock S[{id_store}] P[{id_product}] **");
+
+            // 1. SQL Query: Select columns from 'categories' where the 'id' matches the parameter.
+            const string sqlQuery = "SELECT id_store, id_product, quant FROM store_stock WHERE id_product = @id_product AND id_store = @id_store LIMIT 1;";
+
+            // Initialize the category to null (best practice for "not found")
+            StoreStock store_stock = null;
+
+            // Guard clause for invalid input
+            if (id_store <= 0 || id_product <= 0)
+            {
+                Console.WriteLine("\tStore and Product ID must be a positive integer.");
+                return null;
+            }
+
+            try
+            {
+                // Use 'await using' for automatic disposal (C# 8+)
+                await using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+
+                    await using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = sqlQuery;
+
+                        // 2. Add the parameter to prevent SQL Injection
+                        // We map the C# variable CategoryId to the SQL parameter @categoryId.
+                        command.Parameters.AddWithValue("@id_product", id_product);
+                        command.Parameters.AddWithValue("@id_store", id_store);
+
+                        await using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            // 3. Check if a row was returned (we expect at most one)
+                            if (await reader.ReadAsync())
+                            {
+                                // 4. Map the data to the Category object
+                                store_stock = new StoreStock
+                                {
+                                    // Using column names is safer than indexes if columns change order, 
+                                    // but using indexes (0, 1) is fine based on the query order.
+                                    IdStore = reader.GetInt32(0),   // 'id' is the first column
+                                    IdProduct = reader.GetInt32(0),   // 'id' is the first column
+                                    Stock = reader.GetInt32(0),   // 'id' is the first column
+                                };
+
+                                Console.WriteLine($"\tFound Store Stock: S{store_stock.IdStore}, P{store_stock.IdProduct}");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"\tStore Stock with ID '(S{id_store}, P{id_product})' not found.");
+                            }
+                        }
+                    }
+                    Console.WriteLine("** Closing connection **");
+                }
+                return store_stock;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details for debugging
+                Console.WriteLine($"\tAn error occurred while retrieving category: {ex.Message}");
+                // Return null on error
+                return null;
+            }
+        }
+
+
 
         // Update Data Methods
 
@@ -664,6 +734,32 @@ namespace Project605_2.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating user token: {ex.Message}");
+            }
+        }
+
+        public async Task UpdateStoreStock(StoreStock upStock)
+        {
+            Console.WriteLine("** Opening connection - UpdateStoreStock **");
+            try
+            {
+                using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = "UPDATE store_stock SET quant = @quant WHERE id_product = @id_product AND id_store = @id_store;";
+                        command.Parameters.AddWithValue("@quant", upStock.Stock);
+                        command.Parameters.AddWithValue("@id_product", upStock.IdProduct);
+                        command.Parameters.AddWithValue("@id_store", upStock.IdStore);
+                        int rowsAffected = await command.ExecuteNonQueryAsync();
+                        Console.WriteLine($"\tRows affected: {rowsAffected}");
+                    }
+                }
+                Console.WriteLine("** Closing connection **");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Store Stock (Inverntory): {ex.Message}");
             }
         }
 
@@ -750,5 +846,50 @@ namespace Project605_2.Services
                 // throw;
             }
         }
+
+        public async Task AddStoreStock(StoreStock storeStock)
+        {
+            Console.WriteLine("** Opening connection - AddProduct **");
+
+            // 1. Define the SQL INSERT statement
+            // We are inserting into 'products' and specifying 'name' and 'id_category'.
+            // We use parameters (@name, @id_category) to prevent SQL injection.
+            const string insertSql =
+                "INSERT INTO store_stock (id_store, id_product, quant) " +
+                "VALUES (@id_store, @id_product, @quant);";
+
+            try
+            {
+                // Assuming 'Builder.ConnectionString' is accessible and correct
+                using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = insertSql;
+
+                        // 2. Map the Product C# properties to the SQL parameters
+                        command.Parameters.AddWithValue("@id_store", storeStock.IdStore);
+                        command.Parameters.AddWithValue("@id_product", storeStock.IdProduct);
+                        command.Parameters.AddWithValue("@quant", storeStock.Stock);
+
+                        // 3. Execute the command
+                        int rowsAffected = await command.ExecuteNonQueryAsync();
+
+                        Console.WriteLine($"\tStore Stock: '(S{storeStock.IdStore}, P{storeStock.IdProduct}, Q{storeStock.Stock})' inserted. Rows affected: {rowsAffected}");
+                    }
+                }
+                Console.WriteLine("** Closing connection **");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inserting store stock: {ex.Message}");
+                // Optionally re-throw the exception if the caller needs to handle failure
+                // throw;
+            }
+        }
+
+
+
     }
 }
