@@ -13,7 +13,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const res = await fetch("/api/addproduct", {
+      //console.log(`FE - Try: ${name} - ${categoryId}`)
+
+      const res = await fetch("/api/addproduct", { //
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -22,9 +24,11 @@ document.addEventListener("DOMContentLoaded", () => {
         })
       });
 
+      //console.log(`FE - Status: ${res.status} - ${res.message}`)
+
       if (!res.ok) {
         const error = await res.json();
-        msg.textContent = "Erro: " + (error?.message || "Falha ao adicionar");
+        msg.textContent = `Erro: ${res.status}` + " " + (error?.message || "Falha ao adicionar");
         msg.style.color = "red";
         return;
       }
