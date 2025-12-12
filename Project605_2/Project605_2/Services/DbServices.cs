@@ -1,15 +1,18 @@
 ﻿using MySqlConnector;
 using Project605_2.Models;
+using StackExchange.Redis;
+using System;
 using System.Data;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading.Tasks;
-using System;
 using static System.String;
 
 namespace Project605_2.Services
 {
     public class DbServices
     {
+        // MySQL Connection Details
         private string ServerIP = "localhost";
         private int Port = 3306;
         private string DB = "YOUR-DATABASE";
@@ -18,9 +21,21 @@ namespace Project605_2.Services
 
         private MySqlConnectionStringBuilder Builder;
 
+        // Redis Connection Details
+        private int RedisPort = 6379;
+        private string RedisIp = "localhost";
+        private readonly IDatabase _redisDb;
+        private readonly ConnectionMultiplexer _redis;
+        private string RedisConnectionString = "localhost:6379,allowAdmin=true";
+        private readonly TimeSpan DefaultCacheExpiration = TimeSpan.FromMinutes(10);
 
-        public DbServices(String server, int port, String db, String user, String pass)
+        //public CacheCounter CacheStats;
+
+
+
+        public DbServices(String server, int port, String db, String user, String pass, string redisIp, int redisPort)
         {
+            // MySQL
             ServerIP = server;
             Port = port;
             DB = db;
@@ -36,11 +51,33 @@ namespace Project605_2.Services
                 Password = this.Pass,
                 SslMode = MySqlSslMode.Required,
             };
+
+            // Redis
+            RedisPort = redisPort;
+            RedisIp = redisIp;
+            RedisConnectionString = $"{RedisIp}:{RedisPort},allowAdmin=true";
+
+
+            try
+            {
+                _redis = ConnectionMultiplexer.Connect(RedisConnectionString);
+                _redisDb = _redis.GetDatabase();
+                Console.WriteLine("Redis connection established successfully.");
+                //CacheStats = new CacheCounter(true);
+            }
+            catch (Exception ex)
+            {
+                // Handle or log the error if Redis connection fails
+                Console.WriteLine($"Failed to connect to Redis: {ex.Message}");
+                // You might want to make caching optional if the connection fails
+                //CacheStats = new CacheCounter(false);
+            }
         }
 
         // Test Method
         public async Task ReadDb(string[] args) // Prof of Concept
         {
+            // not in use
             var builder = new MySqlConnectionStringBuilder
             {
                 Server = this.ServerIP,
@@ -81,6 +118,46 @@ namespace Project605_2.Services
             Console.WriteLine("Read DB - Press RETURN to exit");
             //Console.ReadLine();
         }
+
+
+        // --- Helper Methods for Redis ---
+
+        // Retrieves a cached item from Redis.
+        private async Task<T> GetCachedItemAsync<T>(string key) where T : class
+        {
+            if (_redisDb == null) return null;
+
+            var cachedValue = await _redisDb.StringGetAsync(key);
+            if (cachedValue.IsNullOrEmpty)
+            {
+                return null; // Cache miss
+            }
+
+            // Deserialize the JSON string back into the object type T
+            return JsonSerializer.Deserialize<T>(cachedValue!)!;
+        }
+
+        // Sets an item in Redis with an expiration time.
+        private async Task SetCachedItemAsync<T>(string key, T item, TimeSpan? expiry = null)
+        {
+            if (_redisDb == null) return;
+
+            // Default expiration: 5 minutes (adjust as needed)
+            var expiration = expiry ?? TimeSpan.FromMinutes(5);
+
+            // Serialize the object to a JSON string
+            var jsonValue = JsonSerializer.Serialize(item);
+
+            await _redisDb.StringSetAsync(key, jsonValue, expiration);
+        }
+
+        // Removes a key from Redis.
+        private async Task InvalidateCacheKeyAsync(string key)
+        {
+            if (_redisDb == null) return;
+            await _redisDb.KeyDeleteAsync(key);
+        }
+
 
 
         // Login Method
@@ -242,6 +319,34 @@ namespace Project605_2.Services
         public async Task<List<Store>> GetStores()
         {
             List<Store> stores = new List<Store>();
+
+            string cacheKey = $"all_stores";
+
+            // Check cache first
+            try
+            {
+                //
+                stores = await GetCachedItemAsync<List<Store>>(cacheKey);
+                if (stores != null)
+                {
+                    Console.WriteLine($"\tCache HIT for key: {cacheKey}");
+                    //CacheStats.CacheHit();
+                    return stores; // Cache HIT: Return data from Redis
+                }
+                else
+                {
+                    stores = new List<Store>(); // Initialize if cache miss
+                    //CacheStats.CacheMiss();
+                }
+            }
+            catch (Exception)
+            {
+                //
+                Console.WriteLine($"\tCache MISS for key: {cacheKey}");
+                //CacheStats.CacheMiss();
+            }
+
+            // oh well... i go to the DB...
             try
             {
                 using (var conn = new MySqlConnection(Builder.ConnectionString))
@@ -273,6 +378,22 @@ namespace Project605_2.Services
 
                     Console.WriteLine("** Closing connection **");
                 }
+
+                // Update Cache
+                if (stores.Count != 0)
+                {
+                    // Cache the user for 10 minutes, for example
+                    try
+                    {
+                        await SetCachedItemAsync(cacheKey, stores, DefaultCacheExpiration);
+                        Console.WriteLine($"\tCaching user for key: {cacheKey}");
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine($"\tFailed to cache data for key: {cacheKey}");
+                    }
+                }
+                //CacheStats.PrintStatistics(); // for debugging
                 return stores;
             }
             catch (Exception)

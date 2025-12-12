@@ -24,11 +24,15 @@ namespace Project605_2.Controllers
             _service = service;
 
             _dbServices = new DbServices(
+                // MySQL
                 "192.168.0.30",
                 3333,
                 "Logistica_605Forte",
                 "root",
-                "123"
+                "123",
+                // Redis
+                "192.168.0.30",
+                6379
                 );
 
             _tokenService = tokenService;
