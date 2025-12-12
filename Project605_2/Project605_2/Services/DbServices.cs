@@ -31,6 +31,14 @@ namespace Project605_2.Services
 
         //public CacheCounter CacheStats;
 
+        /*
+        Redis Cache Keys:
+
+        all_products
+        all_stores
+        all_categories
+        all_store_stock
+         */
 
 
         public DbServices(String server, int port, String db, String user, String pass, string redisIp, int redisPort)
