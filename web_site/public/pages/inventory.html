@@ -29,7 +29,7 @@
                   <a class="nav-link" href="/products">Products</a>
               </li>
               <li class="nav-item">
-                  <a class="nav-link" href="/inventory">Inventory</a>
+                  <a class="nav-link active" href="/inventory">Inventory</a>
               </li>
               <li class="nav-item">
                   <a class="nav-link" href="/login">Logout</a>
@@ -38,10 +38,6 @@
       </div>
     </div>
   </nav>
-
-
-
-
 
   <div class="container py-4">
     <h2 class="mb-4">Gestão de Inventário</h2>
@@ -69,18 +65,57 @@
       </div>
     </div>
 
-    <div class="table-responsive">
-      <table class="table table-striped table-hover">
-        <thead class="table-dark">
-          <tr>
-            <th>Produto</th>
-            <th>Loja</th>
-            <th>Quantidade</th>
-            <th>Categoria</th>
-          </tr>
-        </thead>
-        <tbody id="inventoryTable"></tbody>
-      </table>
+    <!-- Layout com tabela e painel lado a lado (responsivo) -->
+    <div class="row">
+      <!-- Tabela (tudo igual ao teu original) -->
+      <div class="col-lg-8">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>Produto</th>
+                <th>Loja</th>
+                <th>Quantidade</th>
+                <th>Categoria</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- === ADIÇÃO PURA === Painel lateral com dropdowns e botões (o que pediste desde o início) -->
+      <div class="col-lg-4">
+        <div class="bg-white border rounded p-4 shadow-sm">
+          <h5 class="mb-4 text-center">Ajustar Stock</h5>
+          
+          <div class="mb-3">
+            <label for="adjustStore" class="form-label">Loja</label>
+            <select id="adjustStore" class="form-select">
+              <option value="">Escolha a loja...</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label for="adjustProduct" class="form-label">Produto</label>
+            <select id="adjustProduct" class="form-select">
+              <option value="">Escolha o produto...</option>
+            </select>
+          </div>
+          
+          <div class="mb-4">
+            <label for="adjustQty" class="form-label">Quantidade</label>
+            <input type="number" id="adjustQty" class="form-control text-center" min="1" value="1">
+          </div>
+          
+          <div class="d-grid gap-3">
+            <button id="btnAdd" class="btn btn-success btn-lg">Adicionar</button>
+            <button id="btnRemove" class="btn btn-danger btn-lg">Remover</button>
+          </div>
+          
+          <div id="adjustMsg" class="mt-4 text-center fw-bold"></div>
+        </div>
+      </div>
     </div>
 
     <div id="msg" class="fw-bold mt-2"></div>
