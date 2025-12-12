@@ -50,6 +50,10 @@ builder.Services.AddAuthorization();
 builder.Services.AddTransient<TokenService>();
 
 
+// Adding Connection Settigs as a singleton
+var connectionSettings = SettingsManager.CurrentSettings.GetAwaiter().GetResult();
+builder.Services.AddSingleton(connectionSettings);
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

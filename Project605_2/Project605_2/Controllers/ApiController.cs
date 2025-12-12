@@ -18,21 +18,24 @@ namespace Project605_2.Controllers
         private readonly TokenService _tokenService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly LoginService _loginService;
+        
 
-        public ApiController(ApiService service, TokenService tokenService, IHttpContextAccessor httpContextAccessor)
+        public ApiController(ApiService service, TokenService tokenService, IHttpContextAccessor httpContextAccessor, ConnectionSettings connectionSettings)  // Settings INJECTED HERE
         {
+            //Console.WriteLine($"Loaded Settings: DB IP = {connectionSettings.IpDb}, DB Port = {connectionSettings.PortDb}, Redis IP = {connectionSettings.IpRedis}, Redis Port = {connectionSettings.PortRedis}");
+
             _service = service;
 
             _dbServices = new DbServices(
                 // MySQL
-                "192.168.0.30",
-                3333,
+                connectionSettings.IpDb,
+                connectionSettings.PortDb,
                 "Logistica_605Forte",
-                "root",
-                "123",
+                connectionSettings.UserDb,
+                connectionSettings.PassDb,
                 // Redis
-                "192.168.0.30",
-                6379
+                connectionSettings.IpRedis,
+                connectionSettings.PortRedis
                 );
 
             _tokenService = tokenService;
