@@ -27,7 +27,7 @@ namespace Project605_2.Services
         private readonly IDatabase _redisDb;
         private readonly ConnectionMultiplexer _redis;
         private string RedisConnectionString = "localhost:6379,allowAdmin=true";
-        private readonly TimeSpan DefaultCacheExpiration = TimeSpan.FromMinutes(10);
+        private readonly TimeSpan DefaultCacheExpiration = TimeSpan.FromMinutes(1);
 
         //public CacheCounter CacheStats;
 
@@ -125,37 +125,59 @@ namespace Project605_2.Services
         // Retrieves a cached item from Redis.
         private async Task<T> GetCachedItemAsync<T>(string key) where T : class
         {
-            if (_redisDb == null) return null;
-
-            var cachedValue = await _redisDb.StringGetAsync(key);
-            if (cachedValue.IsNullOrEmpty)
+            try
             {
-                return null; // Cache miss
+                if (_redisDb == null) return null;
+
+                var cachedValue = await _redisDb.StringGetAsync(key);
+                if (cachedValue.IsNullOrEmpty)
+                {
+                    return null; // Cache miss
+                }
+
+                // Deserialize the JSON string back into the object type T
+                return JsonSerializer.Deserialize<T>(cachedValue!)!;
+            }
+            catch (Exception)
+            {
+                return null;
             }
 
-            // Deserialize the JSON string back into the object type T
-            return JsonSerializer.Deserialize<T>(cachedValue!)!;
         }
 
         // Sets an item in Redis with an expiration time.
         private async Task SetCachedItemAsync<T>(string key, T item, TimeSpan? expiry = null)
         {
-            if (_redisDb == null) return;
+            try
+            {
+                if (_redisDb == null) return;
 
-            // Default expiration: 5 minutes (adjust as needed)
-            var expiration = expiry ?? TimeSpan.FromMinutes(5);
+                // Default expiration: 5 minutes (adjust as needed)
+                var expiration = expiry ?? TimeSpan.FromMinutes(5);
 
-            // Serialize the object to a JSON string
-            var jsonValue = JsonSerializer.Serialize(item);
+                // Serialize the object to a JSON string
+                var jsonValue = JsonSerializer.Serialize(item);
 
-            await _redisDb.StringSetAsync(key, jsonValue, expiration);
+                await _redisDb.StringSetAsync(key, jsonValue, expiration);
+            }
+            catch (Exception)
+            {
+                return;
+            }
         }
 
         // Removes a key from Redis.
         private async Task InvalidateCacheKeyAsync(string key)
         {
-            if (_redisDb == null) return;
-            await _redisDb.KeyDeleteAsync(key);
+            try
+            {
+                if (_redisDb == null) return;
+                await _redisDb.KeyDeleteAsync(key);
+            }
+            catch (Exception)
+            {
+                return;
+            }
         }
 
 
@@ -272,14 +294,29 @@ namespace Project605_2.Services
 
         // Get All Data Methods
 
-        public async Task<List<Product>> GetProducts()
+        public async Task<List<Product>> GetProducts() // Cached
         {
-            Console.WriteLine("** Opening connection - Products **");
             List<Product> products = new List<Product>();
+
+            string cacheKey = $"all_products";
+
+            products = await GetCachedItemAsync<List<Product>>(cacheKey);
+            if (products != null)
+            {
+                Console.WriteLine($"\tCache HIT for key: {cacheKey}");
+                return products; // Cache HIT: Return data from Redis
+            }
+            else
+            {
+                products = new List<Product>(); // Initialize if cache miss
+                Console.WriteLine($"\tCache MISS for key: {cacheKey}");
+            }
+
             try
             {
                 using (var conn = new MySqlConnection(Builder.ConnectionString))
                 {
+                    Console.WriteLine("** Opening connection - Products **");
                     await conn.OpenAsync();
 
                     using (var command = conn.CreateCommand())
@@ -305,8 +342,14 @@ namespace Project605_2.Services
                             }
                         }
                     }
-
                     Console.WriteLine("** Closing connection **");
+                }
+
+                // Update Cache
+                if (products.Count != 0)
+                {
+                    await SetCachedItemAsync(cacheKey, products, DefaultCacheExpiration);
+                    Console.WriteLine($"\tCaching for key: {cacheKey}");
                 }
                 return products;
             }
@@ -316,37 +359,25 @@ namespace Project605_2.Services
             }
         }
 
-        public async Task<List<Store>> GetStores()
+        public async Task<List<Store>> GetStores() // Cached
         {
             List<Store> stores = new List<Store>();
 
-            string cacheKey = $"all_stores";
-
             // Check cache first
-            try
+            string cacheKey = $"all_stores";
+            stores = await GetCachedItemAsync<List<Store>>(cacheKey);
+            if (stores != null)
             {
-                //
-                stores = await GetCachedItemAsync<List<Store>>(cacheKey);
-                if (stores != null)
-                {
-                    Console.WriteLine($"\tCache HIT for key: {cacheKey}");
-                    //CacheStats.CacheHit();
-                    return stores; // Cache HIT: Return data from Redis
-                }
-                else
-                {
-                    stores = new List<Store>(); // Initialize if cache miss
-                    //CacheStats.CacheMiss();
-                }
+                Console.WriteLine($"\tCache HIT for key: {cacheKey}");
+                return stores; // Cache HIT: Return data from Redis
             }
-            catch (Exception)
+            else
             {
-                //
+                stores = new List<Store>(); // Initialize if cache miss
                 Console.WriteLine($"\tCache MISS for key: {cacheKey}");
-                //CacheStats.CacheMiss();
             }
 
-            // oh well... i go to the DB...
+            // Query Database
             try
             {
                 using (var conn = new MySqlConnection(Builder.ConnectionString))
@@ -375,25 +406,15 @@ namespace Project605_2.Services
                             }
                         }
                     }
-
                     Console.WriteLine("** Closing connection **");
                 }
 
                 // Update Cache
                 if (stores.Count != 0)
                 {
-                    // Cache the user for 10 minutes, for example
-                    try
-                    {
-                        await SetCachedItemAsync(cacheKey, stores, DefaultCacheExpiration);
-                        Console.WriteLine($"\tCaching user for key: {cacheKey}");
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine($"\tFailed to cache data for key: {cacheKey}");
-                    }
+                    await SetCachedItemAsync(cacheKey, stores, DefaultCacheExpiration);
+                    Console.WriteLine($"\tCaching for key: {cacheKey}");
                 }
-                //CacheStats.PrintStatistics(); // for debugging
                 return stores;
             }
             catch (Exception)
@@ -402,9 +423,24 @@ namespace Project605_2.Services
             }
         }
 
-        public async Task<List<Category>> GetCategories()
+        public async Task<List<Category>> GetCategories() // Cached
         {
             List<Category> categories = new List<Category>();
+
+            // Check cache first
+            string cacheKey = $"all_categories";
+            categories = await GetCachedItemAsync<List<Category>>(cacheKey);
+            if (categories != null)
+            {
+                Console.WriteLine($"\tCache HIT for key: {cacheKey}");
+                return categories; // Cache HIT: Return data from Redis
+            }
+            else
+            {
+                categories = new List<Category>(); // Initialize if cache miss
+                Console.WriteLine($"\tCache MISS for key: {cacheKey}");
+            }
+
             try
             {
                 using (var conn = new MySqlConnection(Builder.ConnectionString))
@@ -436,6 +472,12 @@ namespace Project605_2.Services
 
                     Console.WriteLine("** Closing connection **");
                 }
+                // Update Cache
+                if (categories.Count != 0)
+                {
+                    await SetCachedItemAsync(cacheKey, categories, DefaultCacheExpiration);
+                    Console.WriteLine($"\tCaching for key: {cacheKey}");
+                }
                 return categories;
             }
             catch (Exception)
@@ -444,9 +486,24 @@ namespace Project605_2.Services
             }
         }
 
-        public async Task<List<InventoryRequested>> GetStoreStock()
+        public async Task<List<InventoryRequested>> GetStoreStock() // Cached
         {
             List<InventoryRequested> storeStock = new List<InventoryRequested>();
+
+            // Check cache first
+            string cacheKey = $"all_store_stock";
+            storeStock = await GetCachedItemAsync<List<InventoryRequested>>(cacheKey);
+            if (storeStock != null)
+            {
+                Console.WriteLine($"\tCache HIT for key: {cacheKey}");
+                return storeStock; // Cache HIT: Return data from Redis
+            }
+            else
+            {
+                storeStock = new List<InventoryRequested>(); // Initialize if cache miss
+                Console.WriteLine($"\tCache MISS for key: {cacheKey}");
+            }
+
             try
             {
                 using (var conn = new MySqlConnection(Builder.ConnectionString))
@@ -503,6 +560,12 @@ JOIN
                     }
 
                     Console.WriteLine("** Closing connection **");
+                }
+                // Update Cache
+                if (storeStock.Count != 0)
+                {
+                    await SetCachedItemAsync(cacheKey, storeStock, DefaultCacheExpiration);
+                    Console.WriteLine($"\tCaching for key: {cacheKey}");
                 }
                 return storeStock;
             }
@@ -922,6 +985,7 @@ JOIN
         }
 
 
+
         // Update Data Methods
 
         public async Task UpdateUserToken(User user)
@@ -951,7 +1015,7 @@ JOIN
             }
         }
 
-        public async Task UpdateStoreStock(StoreStock upStock)
+        public async Task UpdateStoreStock(StoreStock upStock) // Clear Cache
         {
             Console.WriteLine("** Opening connection - UpdateStoreStock **");
             try
@@ -970,6 +1034,7 @@ JOIN
                     }
                 }
                 Console.WriteLine("** Closing connection **");
+                await InvalidateCacheKeyAsync("all_store_stock");
             }
             catch (Exception ex)
             {
@@ -977,7 +1042,7 @@ JOIN
             }
         }
 
-        public async Task UpdateProduct(Product upProduct)
+        public async Task UpdateProduct(Product upProduct) // Clear Cache
         {
             Console.WriteLine("** Opening connection - UpdateProduct **");
             try
@@ -996,6 +1061,7 @@ JOIN
                     }
                 }
                 Console.WriteLine("** Closing connection **");
+                await InvalidateCacheKeyAsync("all_products");
             }
             catch (Exception ex)
             {
@@ -1003,7 +1069,7 @@ JOIN
             }
         }
 
-        public async Task UpdateCategory(Category upCategory)
+        public async Task UpdateCategory(Category upCategory) // Clear Cache
         {
             Console.WriteLine("** Opening connection - UpdateCategory **");
             try
@@ -1021,6 +1087,7 @@ JOIN
                     }
                 }
                 Console.WriteLine("** Closing connection **");
+                await InvalidateCacheKeyAsync("all_categories");
             }
             catch (Exception ex)
             {
@@ -1029,9 +1096,10 @@ JOIN
         }
 
 
+
         // Insert Data Methods
 
-        public async Task AddProduct(NewProductRequest product)
+        public async Task AddProduct(NewProductRequest product) // Clear Cache
         {
             Console.WriteLine("** Opening connection - AddProduct **");
 
@@ -1063,6 +1131,7 @@ JOIN
                     }
                 }
                 Console.WriteLine("** Closing connection **");
+                await InvalidateCacheKeyAsync("all_products");
             }
             catch (Exception ex)
             {
@@ -1072,7 +1141,7 @@ JOIN
             }
         }
 
-        public async Task AddCategory(NewCategoryRequest category)
+        public async Task AddCategory(NewCategoryRequest category) // Clear Cache
         {
             Console.WriteLine("** Opening connection - AddProduct **");
 
@@ -1103,6 +1172,7 @@ JOIN
                     }
                 }
                 Console.WriteLine("** Closing connection **");
+                await InvalidateCacheKeyAsync("all_categories");
             }
             catch (Exception ex)
             {
@@ -1112,7 +1182,7 @@ JOIN
             }
         }
 
-        public async Task AddStoreStock(StoreStock storeStock)
+        public async Task AddStoreStock(StoreStock storeStock) // Clear Cache
         {
             Console.WriteLine("** Opening connection - AddProduct **");
 
@@ -1145,6 +1215,7 @@ JOIN
                     }
                 }
                 Console.WriteLine("** Closing connection **");
+                await InvalidateCacheKeyAsync("all_store_stock");
             }
             catch (Exception ex)
             {
