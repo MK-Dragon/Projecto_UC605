@@ -225,7 +225,7 @@ namespace Project605_2.Controllers
 
         // Update - UnSave Version
 
-        [HttpPost("usupdatestock")]
+        [HttpPut("usupdatestock")]
         public async Task<IActionResult> UsUpdateStock([FromBody] StoreStock Inventory)
         {
             // Basic Validation
@@ -270,6 +270,80 @@ namespace Project605_2.Controllers
             catch (Exception)
             {
                 return StatusCode(500, new { Message = "Error retrieving Inventory from database after insertion." });
+            }
+
+        }
+
+        [HttpPut("usupdateproduct")]
+        public async Task<IActionResult> UsUpdateProduct([FromBody] Product ProductUpdated)
+        {
+            // Basic Validation
+            if (ProductUpdated == null || ProductUpdated.Id <= 0 || string.IsNullOrEmpty(ProductUpdated.Name) || ProductUpdated.IdCategory <= 0)
+            {
+                // Return HTTP 400 Bad Request if the payload is incomplete
+                return BadRequest("StoreStock Data is Missing");
+            }
+
+            // Validate if Product Exists
+            Product check_product = await _dbServices.GetProductById(ProductUpdated.Id); // checking if null did not work...
+            if (check_product != null)
+            {
+                try
+                {
+                    await _dbServices.UpdateProduct(ProductUpdated);
+                }
+                catch (Exception)
+                {
+
+                    return StatusCode(500, new { Message = "Error updating StoreStock to database. Check if Product ID Exists." });
+                }
+            }
+
+            try
+            {
+                Product check_up_pro = await _dbServices.GetProductByName(ProductUpdated.Name);
+                return Ok(check_up_pro);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Error retrieving Product from database after update." });
+            }
+
+        }
+
+        [HttpPut("usupdatecategory")]
+        public async Task<IActionResult> UsUpdateCategory([FromBody] Category CategoryUpdated)
+        {
+            // Basic Validation
+            if (CategoryUpdated == null || CategoryUpdated.Id <= 0 || string.IsNullOrEmpty(CategoryUpdated.Name))
+            {
+                // Return HTTP 400 Bad Request if the payload is incomplete
+                return BadRequest("StoreStock Data is Missing");
+            }
+
+            // Validate if Product Exists
+            Category check_product = await _dbServices.GetCategoryById(CategoryUpdated.Id); // checking if null did not work...
+            if (check_product != null)
+            {
+                try
+                {
+                    await _dbServices.UpdateCategory(CategoryUpdated);
+                }
+                catch (Exception)
+                {
+
+                    return StatusCode(500, new { Message = "Error updating StoreStock to database. Check if Category ID Exists." });
+                }
+            }
+
+            try
+            {
+                Category check_up_pro = await _dbServices.GetCategoryByName(CategoryUpdated.Name);
+                return Ok(check_up_pro);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Error retrieving Category from database after update." });
             }
 
         }

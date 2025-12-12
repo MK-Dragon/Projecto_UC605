@@ -390,8 +390,10 @@ app.post('/api/addcategory', async (req, res) => {
     }
 });
 
+
 // Update Data (work in progress)
-app.post('/api/updatestock', async (req, res) => {
+
+app.put('/api/updatestock', async (req, res) => {
     try {
         const { idstore, idproduct, quant } = req.body;
 
@@ -427,7 +429,77 @@ app.post('/api/updatestock', async (req, res) => {
     }
 });
 
+app.put('/api/updateproduct', async (req, res) => {
+    try {
+        const { id, name, idcategory } = req.body;
 
+        console.log(`Node [updateproduct]: ${id}, ${name}, ${idcategory}`);
+
+        // Forwarding the request to the upstream RestAPI
+        const response = await axios.post(
+            AUTH_SERVICE_URL + "/api/usupdateproduct", 
+            { id, name, idcategory }, 
+            { httpsAgent }
+        );
+
+        // Success: Forward the exact status code and data from the C# API
+        // This handles 200 OK, 201 Created, etc.
+        res.status(response.status).json(response.data);
+        
+    } catch (error) {
+        // --- IMPROVED ERROR HANDLING ---
+        
+        // Log the error detail for the Node.js server
+        console.error("Upstream Error:", error.message);
+
+        // Extract the status and data from the C# API's response error
+        const status = error.response?.status || 500;
+        
+        // Default message for errors without a C# response (e.g., network failure)
+        const data = error.response?.data || { 
+            message: `Failed to connect to C# API: ${error.message}` 
+        };
+
+        // Forward the correct status and the error data to the frontend
+        res.status(status).json(data);
+    }
+});
+
+app.put('/api/updatecategory', async (req, res) => {
+    try {
+        const { id, name } = req.body;
+
+        console.log(`Node [updatecategory]: ${id}, ${name}`);
+
+        // Forwarding the request to the upstream RestAPI
+        const response = await axios.post(
+            AUTH_SERVICE_URL + "/api/usupdatecategory", 
+            { id, name }, 
+            { httpsAgent }
+        );
+
+        // Success: Forward the exact status code and data from the C# API
+        // This handles 200 OK, 201 Created, etc.
+        res.status(response.status).json(response.data);
+        
+    } catch (error) {
+        // --- IMPROVED ERROR HANDLING ---
+        
+        // Log the error detail for the Node.js server
+        console.error("Upstream Error:", error.message);
+
+        // Extract the status and data from the C# API's response error
+        const status = error.response?.status || 500;
+        
+        // Default message for errors without a C# response (e.g., network failure)
+        const data = error.response?.data || { 
+            message: `Failed to connect to C# API: ${error.message}` 
+        };
+
+        // Forward the correct status and the error data to the frontend
+        res.status(status).json(data);
+    }
+});
 
 
 // Page Routing!

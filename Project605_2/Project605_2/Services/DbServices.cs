@@ -529,6 +529,74 @@ JOIN
             }
         }
 
+        public async Task<Product> GetProductById(int ProductId)
+        {
+            Console.WriteLine($"** Opening connection - Product by ID [{ProductId}] **");
+
+            // 1. Define the SQL query using a parameter for the product name
+            const string sqlQuery = "SELECT id, name, id_category FROM products WHERE id = @productId LIMIT 1;";
+
+            // Initialize the product to null or a default state (null is better for "not found")
+            Product product = null;
+
+            // Guard clause for invalid input
+            if (ProductId <= 0)
+            {
+                Console.WriteLine("\tProduct ID cannot be 0 or Negative.");
+                return null;
+            }
+
+            try
+            {
+                await using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+
+                    await using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = sqlQuery;
+
+                        // 2. Add the parameter to prevent SQL Injection
+                        // Ensure the parameter name (@productName) matches the query.
+                        command.Parameters.AddWithValue("@productId", ProductId);
+
+                        await using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            // 3. We expect at most one row, so we just check if ReadAsync returns true once
+                            if (await reader.ReadAsync())
+                            {
+                                // 4. Map the data to the Product object
+                                product = new Product
+                                {
+                                    // It's generally safer to get data by column name if possible, 
+                                    // but using indexes (0, 1, 2) is acceptable if you are certain of the column order.
+                                    // Assuming your columns are in order: Id (0), Name (1), IdCategory (2)
+                                    Id = reader.GetInt32(0),
+                                    Name = reader.GetString(1),
+                                    IdCategory = reader.GetInt32(2)
+                                };
+
+                                Console.WriteLine($"\tFound product: ({product.Id}, {product.Name}, {product.IdCategory})");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"\tProduct with name '{ProductId}' not found.");
+                            }
+                        }
+                    }
+                    Console.WriteLine("** Closing connection **");
+                }
+                return product;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details for debugging
+                Console.WriteLine($"\tAn error occurred while retrieving product: {ex.Message}");
+                // Return null to signal that the product could not be retrieved due to an error.
+                return null;
+            }
+        }
+
         public async Task<Category> GetCategoryById(int CategoryId)
         {
             Console.WriteLine($"** Opening connection - Category by ID [{CategoryId}] **");
@@ -785,6 +853,57 @@ JOIN
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating Store Stock (Inverntory): {ex.Message}");
+            }
+        }
+
+        public async Task UpdateProduct(Product upProduct)
+        {
+            Console.WriteLine("** Opening connection - UpdateProduct **");
+            try
+            {
+                using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = "UPDATE products SET name = @name, id_category = @id_category WHERE id = @id_product;";
+                        command.Parameters.AddWithValue("@id_product", upProduct.Id);
+                        command.Parameters.AddWithValue("@name", upProduct.Name);
+                        command.Parameters.AddWithValue("@id_category", upProduct.IdCategory);
+                        int rowsAffected = await command.ExecuteNonQueryAsync();
+                        Console.WriteLine($"\tRows affected: {rowsAffected}");
+                    }
+                }
+                Console.WriteLine("** Closing connection **");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Product: {ex.Message}");
+            }
+        }
+
+        public async Task UpdateCategory(Category upCategory)
+        {
+            Console.WriteLine("** Opening connection - UpdateCategory **");
+            try
+            {
+                using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = "UPDATE categories SET name = @name WHERE id = @id_category;";
+                        command.Parameters.AddWithValue("@id_category", upCategory.Id);
+                        command.Parameters.AddWithValue("@name", upCategory.Name);
+                        int rowsAffected = await command.ExecuteNonQueryAsync();
+                        Console.WriteLine($"\tRows affected: {rowsAffected}");
+                    }
+                }
+                Console.WriteLine("** Closing connection **");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Category: {ex.Message}");
             }
         }
 
