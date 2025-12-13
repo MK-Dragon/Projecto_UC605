@@ -5,38 +5,54 @@ document.addEventListener("DOMContentLoaded", async () => {
   const qtyFilter = document.getElementById("filterQty");
   const sortSelect = document.getElementById("sortSelect");
 
-  let originalData = [];
+  let inventoryData = [];
+  let storeData = [];
+
 
   try {
     const res = await fetch("/api/getinventory");
     if (!res.ok) throw new Error("Erro ao buscar inventário");
-    originalData = await res.json();
-    renderTable(originalData);
+    inventoryData = await res.json();
+    renderTable(inventoryData);
 
-    console.log("Inv Load:")
-    originalData.forEach(item => {
+    // Debug
+    /*console.log("Inv Load:")
+    inventoryData.forEach(item => {
       console.log(item);
       console.log(`${item.productName} - ${item.storeName } - ${item.stock} - ${item.categoryName}`);
-    });
+    });*/
 
-    populateStoreFilter(originalData);
-    msg.textContent = "Dados carregados!";
-    msg.style.color = "green";
+    res2 = await fetch("/api/getstores");
+    if (!res2.ok) throw new Error("Erro ao buscar inventário");
+    storeData = await res2.json();
+    populateStoreFilter(storeData);
+
+    // Debug
+    /*console.log("Stores Load:")
+    storeData.forEach(item => {
+      console.log(item);
+      //console.log(`${item.storeId} - ${item.storeName }`);
+    });*/
+
+    //msg.textContent = "Dados carregados!";
+    //msg.style.color = "green";
   } catch (e) {
     msg.textContent = "Erro: " + e.message;
     msg.style.color = "red";
   }
 
-  storeFilter.addEventListener("change", () => renderTable(originalData));
-  qtyFilter.addEventListener("input", () => renderTable(originalData));
-  sortSelect.addEventListener("change", () => renderTable(originalData));
+  storeFilter.addEventListener("change", () => renderTable(inventoryData));
+  qtyFilter.addEventListener("input", () => renderTable(inventoryData));
+  sortSelect.addEventListener("change", () => renderTable(inventoryData));
 
-  function populateStoreFilter(data) {
-    const lojas = [...new Set(data.map(d => d.store))];
-    lojas.forEach(loja => {
+  function populateStoreFilter(stores) {
+    console.log("Load Store DD");
+
+    stores.forEach(store => {
+      //console.log(`${store.id} - ${store.name}`)
       const option = document.createElement("option");
-      option.value = loja;
-      option.textContent = loja;
+      option.value = store.id;
+      option.textContent = store.name;
       storeFilter.appendChild(option);
     });
   }
@@ -48,7 +64,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const minQty = parseInt(qtyFilter.value);
     const sortBy = sortSelect.value;
 
-    if (store !== "all") filtered = filtered.filter(i => i.store === store);
+    if (store !== "all") filtered = filtered.filter(i => `${i.idStore}` == `${store}`);
     if (!isNaN(minQty)) filtered = filtered.filter(i => i.quantity >= minQty);
 
     switch (sortBy) {
@@ -61,6 +77,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     tableBody.innerHTML = "";
     filtered.forEach(item => {
+      console.log(item);
       tableBody.innerHTML += `
         <tr>
           <td>${item.productName}</td>
