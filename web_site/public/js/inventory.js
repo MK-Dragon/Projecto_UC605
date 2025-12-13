@@ -93,7 +93,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!res.ok) throw new Error("Erro no servidor");
 
       // reload page! ^_^ f#$% this bugs!
-      window.location.href = "/home";
+      //window.location.href = "/home";
+      loadInventory(); // Testing
 
       // Atualiza local
       /*const item = originalData.find(i => i.productId === productId && i.storeId === storeId);
@@ -182,4 +183,33 @@ document.addEventListener("DOMContentLoaded", async () => {
       `;
     });
   }
+
+
+  async function loadInventory() {
+    try {
+      const res = await fetch("/api/getinventory");
+      if (!res.ok) throw new Error("Erro GET getinventory");
+
+      const data = await res.json();
+      //categoryList.innerHTML = "";
+
+      if (!data || data.length === 0) {
+        //categoryEmpty.style.display = "block";
+        return;
+      }
+
+      renderTable(data);
+
+      /*categoryEmpty.style.display = "none";
+      data.forEach(cat => {
+        const li = document.createElement("li");
+        li.className = "list-group-item py-3 text-center";
+        li.textContent = cat.name; // backend deve devolver sempre "name"
+        categoryList.appendChild(li);
+      });*/
+    } catch (err) {
+      console.error("Erro ao carregar categorias:", err);
+    }
+  }
+
 });

@@ -653,6 +653,7 @@ JOIN
             return user;
         }
 
+
         public async Task<Product> GetProductByName(string ProductName)
         {
             Console.WriteLine($"** Opening connection - Product by Name [{ProductName}] **");
@@ -789,6 +790,7 @@ JOIN
             }
         }
 
+
         public async Task<Category> GetCategoryById(int CategoryId)
         {
             Console.WriteLine($"** Opening connection - Category by ID [{CategoryId}] **");
@@ -922,6 +924,142 @@ JOIN
                 return null;
             }
         }
+
+
+        public async Task<Store> GetStoreById(int StoreId)
+        {
+            Console.WriteLine($"** Opening connection - Category by ID [{StoreId}] **");
+
+            // 1. SQL Query: Select columns from 'categories' where the 'id' matches the parameter.
+            const string sqlQuery = "SELECT id, name FROM stores WHERE id = @storeId LIMIT 1;";
+
+            // Initialize the category to null (best practice for "not found")
+            Store store = null;
+
+            // Guard clause for invalid input
+            if (StoreId <= 0)
+            {
+                Console.WriteLine("\tCategory ID must be a positive integer.");
+                return null;
+            }
+
+            try
+            {
+                // Use 'await using' for automatic disposal (C# 8+)
+                await using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+
+                    await using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = sqlQuery;
+
+                        // 2. Add the parameter to prevent SQL Injection
+                        // We map the C# variable storeId to the SQL parameter @storeId.
+                        command.Parameters.AddWithValue("@storeId", StoreId);
+
+                        await using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            // 3. Check if a row was returned (we expect at most one)
+                            if (await reader.ReadAsync())
+                            {
+                                // 4. Map the data to the Category object
+                                store = new Store
+                                {
+                                    // Using column names is safer than indexes if columns change order, 
+                                    // but using indexes (0, 1) is fine based on the query order.
+                                    Id = reader.GetInt32(0),   // 'id' is the first column
+                                    Name = reader.GetString(1) // 'name' is the second column
+                                };
+
+                                Console.WriteLine($"\tFound Store: ({store.Id}, {store.Name})");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"\tStore with ID '{StoreId}' not found.");
+                            }
+                        }
+                    }
+                    Console.WriteLine("** Closing connection **");
+                }
+                return store;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details for debugging
+                Console.WriteLine($"\tAn error occurred while retrieving category: {ex.Message}");
+                // Return null on error
+                return null;
+            }
+        }
+
+        public async Task<Store> GetStoreByName(String StoreName)
+        {
+            Console.WriteLine($"** Opening connection - Category by Name [{StoreName}] **");
+
+            // 1. SQL Query: Select columns from 'categories' where the 'id' matches the parameter.
+            const string sqlQuery = "SELECT id, name FROM stores WHERE name = @storeName LIMIT 1;";
+
+            // Initialize the category to null (best practice for "not found")
+            Store store = null;
+
+            // Guard clause for invalid input
+            if (StoreName == null || string.IsNullOrEmpty(StoreName))
+            {
+                Console.WriteLine("\tStore ID must be a positive integer.");
+                return null;
+            }
+
+            try
+            {
+                // Use 'await using' for automatic disposal (C# 8+)
+                await using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+
+                    await using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = sqlQuery;
+
+                        // 2. Add the parameter to prevent SQL Injection
+                        // We map the C# variable CategoryId to the SQL parameter @categoryId.
+                        command.Parameters.AddWithValue("@storeName", StoreName);
+
+                        await using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            // 3. Check if a row was returned (we expect at most one)
+                            if (await reader.ReadAsync())
+                            {
+                                // 4. Map the data to the Category object
+                                store = new Store
+                                {
+                                    // Using column names is safer than indexes if columns change order, 
+                                    // but using indexes (0, 1) is fine based on the query order.
+                                    Id = reader.GetInt32(0),   // 'id' is the first column
+                                    Name = reader.GetString(1) // 'name' is the second column
+                                };
+
+                                Console.WriteLine($"\tFound store: ({store.Id}, {store.Name})");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"\tStore with ID '{StoreName}' not found.");
+                            }
+                        }
+                    }
+                    Console.WriteLine("** Closing connection **");
+                }
+                return store;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details for debugging
+                Console.WriteLine($"\tAn error occurred while retrieving store: {ex.Message}");
+                // Return null on error
+                return null;
+            }
+        }
+
 
         public async Task<StoreStock> GetStoreStockById(int id_store, int id_product)
         {
@@ -1132,6 +1270,32 @@ JOIN
             }
         }
 
+        public async Task UpdateStore(Store upStore) // Clear Cache
+        {
+            Console.WriteLine("** Opening connection - UpdateStore **");
+            try
+            {
+                using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = "UPDATE stores SET name = @name WHERE id = @id_store;";
+                        command.Parameters.AddWithValue("@id_store", upStore.Id);
+                        command.Parameters.AddWithValue("@name", upStore.Name);
+                        int rowsAffected = await command.ExecuteNonQueryAsync();
+                        Console.WriteLine($"\tRows affected: {rowsAffected}");
+                    }
+                }
+                Console.WriteLine("** Closing connection **");
+                await InvalidateCacheKeyAsync("all_stores");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Store: {ex.Message}");
+            }
+        }
+
 
 
         // Insert Data Methods
@@ -1180,7 +1344,7 @@ JOIN
 
         public async Task AddCategory(NewCategoryRequest category) // Clear Cache
         {
-            Console.WriteLine("** Opening connection - AddProduct **");
+            Console.WriteLine("** Opening connection - AddCategory **");
 
             // 1. Define the SQL INSERT statement
             // We are inserting into 'products' and specifying 'name' and 'id_category'.
@@ -1210,6 +1374,47 @@ JOIN
                 }
                 Console.WriteLine("** Closing connection **");
                 await InvalidateCacheKeyAsync("all_categories");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inserting product: {ex.Message}");
+                // Optionally re-throw the exception if the caller needs to handle failure
+                // throw;
+            }
+        }
+
+        public async Task AddStore(NewStoreRequest store) // Clear Cache
+        {
+            Console.WriteLine("** Opening connection - AddStore **");
+
+            // 1. Define the SQL INSERT statement
+            // We are inserting into 'products' and specifying 'name' and 'id_category'.
+            // We use parameters (@name, @id_category) to prevent SQL injection.
+            const string insertSql =
+                "INSERT INTO stores (name) " +
+                "VALUES (@name);";
+
+            try
+            {
+                // Assuming 'Builder.ConnectionString' is accessible and correct
+                using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = insertSql;
+
+                        // 2. Map the Product C# properties to the SQL parameters
+                        command.Parameters.AddWithValue("@name", store.Name);
+
+                        // 3. Execute the command
+                        int rowsAffected = await command.ExecuteNonQueryAsync();
+
+                        Console.WriteLine($"\nCategory '{store.Name}' inserted. Rows affected: {rowsAffected}");
+                    }
+                }
+                Console.WriteLine("** Closing connection **");
+                await InvalidateCacheKeyAsync("all_stores");
             }
             catch (Exception ex)
             {

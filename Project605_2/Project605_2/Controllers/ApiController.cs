@@ -404,6 +404,43 @@ namespace Project605_2.Controllers
 
         }
 
+        [HttpPut("usupdatestore")]
+        public async Task<IActionResult> UsUpdateStore([FromBody] Store StoreUpdated)
+        {
+            // Basic Validation
+            if (StoreUpdated == null || StoreUpdated.Id <= 0 || string.IsNullOrEmpty(StoreUpdated.Name))
+            {
+                // Return HTTP 400 Bad Request if the payload is incomplete
+                return BadRequest("StoreStock Data is Missing");
+            }
+
+            // Validate if Product Exists
+            Store check_store = await _dbServices.GetStoreById(StoreUpdated.Id); // checking if null did not work...
+            if (check_store != null)
+            {
+                try
+                {
+                    await _dbServices.UpdateStore(StoreUpdated);
+                }
+                catch (Exception)
+                {
+
+                    return StatusCode(500, new { Message = "Error updating StoreStock to database. Check if Category ID Exists." });
+                }
+            }
+
+            try
+            {
+                Store check_up_st = await _dbServices.GetStoreByName(StoreUpdated.Name);
+                return Ok(check_up_st);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Error retrieving Category from database after update." });
+            }
+
+        }
+
 
         // Insert - UnSave Version
 
@@ -498,6 +535,49 @@ namespace Project605_2.Controllers
             catch (Exception)
             {
                 return StatusCode(500, new { Message = "Error retrieving category from database after insertion." });
+            }
+        }
+
+        [HttpPost("usaddstore")]
+        public async Task<IActionResult> UsAddStore([FromBody] NewStoreRequest NewStore)
+        {
+            // Basic Validation
+            if (NewStore == null || string.IsNullOrEmpty(NewStore.Name))
+            {
+                // Return HTTP 400 Bad Request if the payload is incomplete
+                return BadRequest("Product Data is Missing");
+            }
+
+            // Check Category Exists
+            Store check_store = await _dbServices.GetStoreByName(NewStore.Name); // checking if null did not work...
+            if (check_store != null)
+            {
+                // Return HTTP 401 Unauthorized
+                return Unauthorized(new { Message = "Store Already Exist." });
+            }
+
+            // Passed Tests -> Save to DB
+
+            // save product to database
+            try
+            {
+                await _dbServices.AddStore(NewStore);
+            }
+            catch (Exception)
+            {
+
+                return StatusCode(500, new { Message = "Error saving Store to database." });
+            }
+
+            // try to retrieve the inserted product
+            try
+            {
+                Category store = await _dbServices.GetCategoryByName(NewStore.Name);
+                return Ok(store);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Error retrieving store from database after insertion." });
             }
         }
     }

@@ -390,6 +390,42 @@ app.post('/api/addcategory', async (req, res) => {
     }
 });
 
+app.post('/api/addstore', async (req, res) => {
+    try {
+        const { name: storeName } = req.body;
+
+        console.log(`Node [addstore]: ${storeName}`);
+
+        // Forwarding the request to the upstream RestAPI
+        const response = await axios.post(
+            AUTH_SERVICE_URL + "/api/usaddstore", 
+            { name: storeName }, 
+            { httpsAgent }
+        );
+
+        // Success: Forward the exact status code and data from the C# API
+        // This handles 200 OK, 201 Created, etc.
+        res.status(response.status).json(response.data);
+        
+    } catch (error) {
+        // --- IMPROVED ERROR HANDLING ---
+        
+        // Log the error detail for the Node.js server
+        console.error("Upstream Error:", error.message);
+
+        // Extract the status and data from the C# API's response error
+        const status = error.response?.status || 500;
+        
+        // Default message for errors without a C# response (e.g., network failure)
+        const data = error.response?.data || { 
+            message: `Failed to connect to C# API: ${error.message}` 
+        };
+
+        // Forward the correct status and the error data to the frontend
+        res.status(status).json(data);
+    }
+});
+
 
 // Update Data (work in progress)
 
