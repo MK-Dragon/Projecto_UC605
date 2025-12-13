@@ -1,4 +1,5 @@
 ﻿using MySqlConnector;
+using Project605_2.ModelRequests;
 using Project605_2.Models;
 using StackExchange.Redis;
 using System;
@@ -212,7 +213,7 @@ namespace Project605_2.Services
 
                         // Add parameters to prevent SQL Injection
                         command.Parameters.AddWithValue("@username", user.Username);
-                        command.Parameters.AddWithValue("@password", user.Password);
+                        command.Parameters.AddWithValue("@password", DEncript.EncryptString(user.Password));
 
                         // ExecuteScalarAsync is best for retrieving a single value (like COUNT)
                         // It returns the first column of the first row (or null if no rows)
@@ -1467,6 +1468,51 @@ JOIN
             }
         }
 
+
+
+        // User Methods
+
+        public async Task AddUser(NewUserRequest newUser)
+        {
+            Console.WriteLine("** Opening connection - AddUser **");
+
+            // 1. Define the SQL INSERT statement
+            // We are inserting into 'products' and specifying 'name' and 'id_category'.
+            // We use parameters (@name, @id_category) to prevent SQL injection.
+            const string insertSql =
+                "INSERT INTO users (username, password) " +
+                "VALUES (@username, @password);";
+
+            try
+            {
+                // Assuming 'Builder.ConnectionString' is accessible and correct
+                using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = insertSql;
+
+                        // 2. Map the Product C# properties to the SQL parameters
+                        command.Parameters.AddWithValue("@username", newUser.Username);
+                        command.Parameters.AddWithValue("@password", DEncript.EncryptString(newUser.Password));
+
+                        // 3. Execute the command
+                        int rowsAffected = await command.ExecuteNonQueryAsync();
+
+                        Console.WriteLine($"\tUser '{newUser.Username}' inserted. Rows affected: {rowsAffected}");
+                    }
+                }
+                Console.WriteLine("** Closing connection **");
+                //await InvalidateCacheKeyAsync("all_users");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inserting product: {ex.Message}");
+                // Optionally re-throw the exception if the caller needs to handle failure
+                // throw;
+            }
+        }
 
 
     }

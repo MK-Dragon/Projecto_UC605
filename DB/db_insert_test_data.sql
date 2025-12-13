@@ -53,5 +53,6 @@ INSERT INTO `Logistica_605Forte`.`store_stock` (`id_store`, `id_product`, `quant
 INSERT INTO `Logistica_605Forte`.`users` 
     (`username`, `password`) 
 VALUES 
-    ('admin', '123'),
-    ('Marco', '321');
+    ('admin', 'uhIIeTqqVHM='),
+    ('Marco', 'uhIIeTqqVHM='),
+    ('Augosto', 'uhIIeTqqVHM=');

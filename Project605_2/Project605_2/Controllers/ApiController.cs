@@ -580,5 +580,52 @@ namespace Project605_2.Controllers
                 return StatusCode(500, new { Message = "Error retrieving store from database after insertion." });
             }
         }
+
+
+        // ** User Management ** - UnSave Version
+
+        [HttpPost("usadduser")]
+        public async Task<IActionResult> UsAddUser([FromBody] NewUserRequest NewUser)
+        {
+            // Basic Validation
+            if (NewUser == null || string.IsNullOrEmpty(NewUser.Username))
+            {
+                // Return HTTP 400 Bad Request if the payload is incomplete
+                return BadRequest("Product Data is Missing");
+            }
+
+            // Check Category Exists
+            User check_user = await _dbServices.GetUserByUsername(NewUser.Username); // checking if null did not work...
+            if (check_user != null)
+            {
+                // Return HTTP 401 Unauthorized
+                return Unauthorized(new { Message = "User Already Exist." });
+            }
+
+            // Passed Tests -> Save to DB
+
+            // save product to database
+            try
+            {
+                await _dbServices.AddUser(NewUser);
+            }
+            catch (Exception)
+            {
+
+                return StatusCode(500, new { Message = "Error saving User to database." });
+            }
+
+            // try to retrieve the inserted product
+            try
+            {
+                User user = await _dbServices.GetUserByUsername(NewUser.Username);
+                return Ok(user);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Error retrieving user from database after insertion." });
+            }
+        }
+
     }
 }

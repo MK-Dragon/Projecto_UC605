@@ -538,6 +538,47 @@ app.put('/api/updatecategory', async (req, res) => {
 });
 
 
+// ** User Management **
+
+app.post('/api/adduser', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        //console.log(`Node [addproduct]: ${proName} - ${catId}`);
+
+        // Forwarding the request to the upstream RestAPI
+        const response = await axios.post(
+            AUTH_SERVICE_URL + "/api/usadduser", 
+            { username, password }, 
+            { httpsAgent }
+        );
+
+        // Success: Forward the exact status code and data from the C# API
+        // This handles 200 OK, 201 Created, etc.
+        res.status(response.status).json(response.data);
+        
+    } catch (error) {
+        // --- IMPROVED ERROR HANDLING ---
+        
+        // Log the error detail for the Node.js server
+        //console.error("Upstream Error:", error.message);
+
+        // Extract the status and data from the C# API's response error
+        const status = error.response?.status || 500;
+        
+        // Default message for errors without a C# response (e.g., network failure)
+        const data = error.response?.data || { 
+            message: `Failed to connect to C# API: ${error.message}` 
+        };
+
+        // Forward the correct status and the error data to the frontend
+        res.status(status).json(data);
+    }
+});
+
+
+
+
 // Page Routing!
 
 
