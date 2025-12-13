@@ -50,11 +50,11 @@ async function handleLogin(event) {
         console.log("html js - Status: " + response.status)
         
         if (response.ok) {
-            resultDiv.innerText = `Success!\nToken: ${data.token}`;
+            //resultDiv.innerText = `Success!\nToken: ${data.token}`;
             // Store token in localStorage for subsequent requests
             localStorage.setItem('authToken', data.token);
             console.log("front: Login good Token: " + data.token)
-            resultDiv.innerText = `message: ${data.message}`;
+            //resultDiv.innerText = `message: ${data.message}`;
 
             localStorage.setItem('authToken', data.token);
             localStorage.setItem('username', username);

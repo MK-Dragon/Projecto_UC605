@@ -395,14 +395,14 @@ app.post('/api/addcategory', async (req, res) => {
 
 app.put('/api/updatestock', async (req, res) => {
     try {
-        const { idstore, idproduct, quant } = req.body;
+        const { idstore, idproduct, stock } = req.body;
 
-        console.log(`Node [updatestock]: ${idstore}, ${idproduct}, ${quant}`);
+        //console.log(`Node [updatestock]: ${idstore}, ${idproduct}, ${quant}`);
 
         // Forwarding the request to the upstream RestAPI
-        const response = await axios.post(
-            AUTH_SERVICE_URL + "/api/usupdatestock", 
-            { idstore, idproduct, quant }, 
+        const response = await axios.put(
+            AUTH_SERVICE_URL + "/api/usupdatestocksum", 
+            { idstore, idproduct, stock }, 
             { httpsAgent }
         );
 

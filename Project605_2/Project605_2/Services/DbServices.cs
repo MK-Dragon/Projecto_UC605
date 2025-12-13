@@ -967,8 +967,8 @@ JOIN
                                     // Using column names is safer than indexes if columns change order, 
                                     // but using indexes (0, 1) is fine based on the query order.
                                     IdStore = reader.GetInt32(0),   // 'id' is the first column
-                                    IdProduct = reader.GetInt32(0),   // 'id' is the first column
-                                    Stock = reader.GetInt32(0),   // 'id' is the first column
+                                    IdProduct = reader.GetInt32(1),   // 'id' is the first column
+                                    Stock = reader.GetInt32(2),   // 'id' is the first column
                                 };
 
                                 Console.WriteLine($"\tFound Store Stock: S{store_stock.IdStore}, P{store_stock.IdProduct}");
@@ -1035,6 +1035,35 @@ JOIN
                     {
                         command.CommandText = "UPDATE store_stock SET quant = @quant WHERE id_product = @id_product AND id_store = @id_store;";
                         command.Parameters.AddWithValue("@quant", upStock.Stock);
+                        command.Parameters.AddWithValue("@id_product", upStock.IdProduct);
+                        command.Parameters.AddWithValue("@id_store", upStock.IdStore);
+                        int rowsAffected = await command.ExecuteNonQueryAsync();
+                        Console.WriteLine($"\tRows affected: {rowsAffected}");
+                    }
+                }
+                Console.WriteLine("** Closing connection **");
+                await InvalidateCacheKeyAsync("all_store_stock");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating Store Stock (Inverntory): {ex.Message}");
+            }
+        }
+
+        public async Task UpdateStoreStock_Sum(StoreStock upStock, int oldStock) // Clear Cache
+        {
+            Console.WriteLine("** Opening connection - UpdateStoreStock SUM **");
+            Console.WriteLine($"S[{upStock.IdStore}] - P[{upStock.IdProduct}]");
+            Console.WriteLine($"{upStock.Stock} + {oldStock} = {upStock.Stock + oldStock}");
+            try
+            {
+                using (var conn = new MySqlConnection(Builder.ConnectionString))
+                {
+                    await conn.OpenAsync();
+                    using (var command = conn.CreateCommand())
+                    {
+                        command.CommandText = "UPDATE store_stock SET quant = @quant WHERE id_product = @id_product AND id_store = @id_store;";
+                        command.Parameters.AddWithValue("@quant", upStock.Stock + oldStock);
                         command.Parameters.AddWithValue("@id_product", upStock.IdProduct);
                         command.Parameters.AddWithValue("@id_store", upStock.IdStore);
                         int rowsAffected = await command.ExecuteNonQueryAsync();

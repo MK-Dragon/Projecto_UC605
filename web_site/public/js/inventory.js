@@ -48,8 +48,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     populateStoreFilter(originalData);
 
     // ADIÇÃO: carrega listas para os dropdowns do painel
-    products = await (await fetch("/api/usgetproducts")).json(); //acho que este é o endpoint correto
-    stores = await (await fetch("/api/usgetstores")).json(); 
+    products = await (await fetch("/api/getproducts")).json(); //acho que este é o endpoint correto
+    stores = await (await fetch("/api/getstores")).json(); 
     populateAdjustDropdowns();
 
     //msg.textContent = "Dados carregados!";
@@ -80,28 +80,38 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-      const res = await fetch("/api/adjuststock", {
-        method: "POST",
+      const res = await fetch("/api/updatestock", {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          productId: productId,
-          storeId: storeId,
-          quantity: direction * qty
+          idstore: storeId,
+          idproduct: productId,
+          stock: direction * qty
         })
       });
 
       if (!res.ok) throw new Error("Erro no servidor");
 
+      // reload page! ^_^ f#$% this bugs!
+      window.location.href = "/home";
+
       // Atualiza local
-      const item = originalData.find(i => i.productId === productId && i.storeId === storeId);
+      /*const item = originalData.find(i => i.productId === productId && i.storeId === storeId);
       if (item) {
         item.stock += direction * qty;
         if (item.stock < 0) item.stock = 0;
       }
-
+        
       renderTable(originalData);
-      adjustMsg.textContent = "Stock atualizado!";
-      adjustMsg.style.color = "green";
+      */
+
+      /*const res_reload = await fetch("/api/getinventory"); // MANTEVE EXATAMENTE O TEU ENDPOINT ORIGINAL
+      if (!res_reload.ok) throw new Error("Erro ao buscar inventário");
+      inventoryData = await res.json();
+      renderTable(inventoryData);*/
+      
+      //adjustMsg.textContent = "Stock atualizado!";
+      //adjustMsg.style.color = "green";
     } catch (err) {
       adjustMsg.textContent = "Erro: " + err.message;
       adjustMsg.style.color = "red";
@@ -110,23 +120,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // ADIÇÃO: preenche dropdowns do painel
   function populateAdjustDropdowns() {
+    //console.log("Stores:");
     stores.forEach(s => {
+      //console.log(s);
       const opt = document.createElement("option");
-      opt.value = s.Id;
-      opt.textContent = s.Name;
+      opt.value = s.id;
+      opt.textContent = s.name;
       adjustStore.appendChild(opt);
     });
+
+    //console.log("Products:");
     products.forEach(p => {
+      //console.log(p);
       const opt = document.createElement("option");
-      opt.value = p.Id;
-      opt.textContent = p.Name;
+      opt.value = p.id;
+      opt.textContent = p.name;
       adjustProduct.appendChild(opt);
     });
   }
 
   // codigo existente!!
   function populateStoreFilter(stores) {
-    console.log("Load Store DD");
+    //console.log("Load Store DD");
 
     stores.forEach(store => {
       const option = document.createElement("option");
@@ -156,7 +171,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     tableBody.innerHTML = "";
     filtered.forEach(item => {
-      console.log(item);
+      //console.log(item);
       tableBody.innerHTML += `
         <tr>
           <td>${item.productName}</td>
