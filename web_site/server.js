@@ -538,6 +538,9 @@ app.get('/add_product', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'pages', 'add_product.html'));
 });
 
+app.get('/manage_stores_cat', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'pages', 'manage_stores_cat.html'));
+});
 
 
 // Start the server
