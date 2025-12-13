@@ -8,9 +8,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   let inventoryData = [];
   let storeData = [];
 
+  // ADIÇÃO: elementos do painel lateral
+  const adjustStore = document.getElementById("adjustStore");
+  const adjustProduct = document.getElementById("adjustProduct");
+  const adjustQty = document.getElementById("adjustQty");
+  const btnAdd = document.getElementById("btnAdd");
+  const btnRemove = document.getElementById("btnRemove");
+  const adjustMsg = document.getElementById("adjustMsg");
+
+  let originalData = [];
+  let products = []; // ADIÇÃO: para preencher dropdown de produtos
+  let stores = [];   // ADIÇÃO: para preencher dropdown de lojas
 
   try {
-    const res = await fetch("/api/getinventory");
+    const res = await fetch("/api/getinventory"); // MANTEVE EXATAMENTE O TEU ENDPOINT ORIGINAL
     if (!res.ok) throw new Error("Erro ao buscar inventário");
     inventoryData = await res.json();
     renderTable(inventoryData);
@@ -34,6 +45,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       //console.log(`${item.storeId} - ${item.storeName }`);
     });*/
 
+    populateStoreFilter(originalData);
+
+    // ADIÇÃO: carrega listas para os dropdowns do painel
+    products = await (await fetch("/api/usgetproducts")).json(); //acho que este é o endpoint correto
+    stores = await (await fetch("/api/usgetstores")).json(); 
+    populateAdjustDropdowns();
+
     //msg.textContent = "Dados carregados!";
     //msg.style.color = "green";
   } catch (e) {
@@ -45,11 +63,72 @@ document.addEventListener("DOMContentLoaded", async () => {
   qtyFilter.addEventListener("input", () => renderTable(inventoryData));
   sortSelect.addEventListener("change", () => renderTable(inventoryData));
 
+  // ADIÇÃO: eventos dos botões
+  btnAdd.addEventListener("click", () => adjustStock(1));
+  btnRemove.addEventListener("click", () => adjustStock(-1));
+
+  // ADIÇÃO: função de ajuste
+  async function adjustStock(direction) {
+    const storeId = parseInt(adjustStore.value);
+    const productId = parseInt(adjustProduct.value);
+    const qty = parseInt(adjustQty.value || 0);
+
+    if (!storeId || !productId || qty <= 0) {
+      adjustMsg.textContent = "Preencha todos os campos!";
+      adjustMsg.style.color = "red";
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/adjuststock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId: productId,
+          storeId: storeId,
+          quantity: direction * qty
+        })
+      });
+
+      if (!res.ok) throw new Error("Erro no servidor");
+
+      // Atualiza local
+      const item = originalData.find(i => i.productId === productId && i.storeId === storeId);
+      if (item) {
+        item.stock += direction * qty;
+        if (item.stock < 0) item.stock = 0;
+      }
+
+      renderTable(originalData);
+      adjustMsg.textContent = "Stock atualizado!";
+      adjustMsg.style.color = "green";
+    } catch (err) {
+      adjustMsg.textContent = "Erro: " + err.message;
+      adjustMsg.style.color = "red";
+    }
+  }
+
+  // ADIÇÃO: preenche dropdowns do painel
+  function populateAdjustDropdowns() {
+    stores.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.Id;
+      opt.textContent = s.Name;
+      adjustStore.appendChild(opt);
+    });
+    products.forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p.Id;
+      opt.textContent = p.Name;
+      adjustProduct.appendChild(opt);
+    });
+  }
+
+  // codigo existente!!
   function populateStoreFilter(stores) {
     console.log("Load Store DD");
 
     stores.forEach(store => {
-      //console.log(`${store.id} - ${store.name}`)
       const option = document.createElement("option");
       option.value = store.id;
       option.textContent = store.name;
