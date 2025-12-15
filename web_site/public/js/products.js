@@ -1,6 +1,5 @@
 console.log("products.js carregado!");
-<<<<<<< HEAD
-=======
+
 document.addEventListener('DOMContentLoaded', async () => {
     // This will cause a different error in a module, 
     // but reinforces the 'top level' rule.
@@ -20,7 +19,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     loadProducts();
 });
->>>>>>> 97d5870db143cf05ac6de44e007b049dff1af0a0
 
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -32,17 +30,16 @@ document.addEventListener("DOMContentLoaded", () => {
 let catMap = new Map();
 catMap.set(-1, "N/A");
 
-let allProducts = [];
+
 let currentProduct = null;
 
-<<<<<<< HEAD
+
 // ================= LOAD PRODUCTS =================
-=======
+
 loadCategories();
 
 let allProducts = []; // <-- Mantemos todos os produtos aqui para filtrar depois
 
->>>>>>> 97d5870db143cf05ac6de44e007b049dff1af0a0
 async function loadProducts() {
     const msg = document.getElementById("msg");
 
