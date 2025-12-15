@@ -18,13 +18,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     loadProducts();
-});
-
-
-document.addEventListener("DOMContentLoaded", () => {
     loadCategories();
-    loadProducts();
 });
+
+
+
 
 // ================= GLOBALS =================
 let catMap = new Map();
@@ -35,8 +33,6 @@ let currentProduct = null;
 
 
 // ================= LOAD PRODUCTS =================
-
-loadCategories();
 
 let allProducts = []; // <-- Mantemos todos os produtos aqui para filtrar depois
 
