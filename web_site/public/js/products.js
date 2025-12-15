@@ -1,4 +1,26 @@
 console.log("products.js carregado!");
+<<<<<<< HEAD
+=======
+document.addEventListener('DOMContentLoaded', async () => {
+    // This will cause a different error in a module, 
+    // but reinforces the 'top level' rule.
+    const udata = fetchUserData()
+    
+    const logoutButton = document.getElementById('logout-button');
+    
+    if (logoutButton) {
+        // Attach the event listener
+        logoutButton.addEventListener('click', (event) => {
+            // CRITICAL: Stop the browser's default action (e.g., following the 'href="#"')
+            event.preventDefault(); 
+            
+            // Call the function that makes the POST request and redirects
+            logoutUser();
+        });
+    }
+    loadProducts();
+});
+>>>>>>> 97d5870db143cf05ac6de44e007b049dff1af0a0
 
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -13,7 +35,14 @@ catMap.set(-1, "N/A");
 let allProducts = [];
 let currentProduct = null;
 
+<<<<<<< HEAD
 // ================= LOAD PRODUCTS =================
+=======
+loadCategories();
+
+let allProducts = []; // <-- Mantemos todos os produtos aqui para filtrar depois
+
+>>>>>>> 97d5870db143cf05ac6de44e007b049dff1af0a0
 async function loadProducts() {
     const msg = document.getElementById("msg");
 

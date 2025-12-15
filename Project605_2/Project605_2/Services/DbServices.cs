@@ -278,21 +278,33 @@ namespace Project605_2.Services
             }
         }
 
-        public async Task<bool> InvalidateToken(string username) // logout
+        public async Task<bool> InvalidateToken(User user) // logout
         {
             Console.WriteLine("** Opening connection - InvalidateToken **");
             try
             {
-                User user = await GetUserByUsername(username);
-                if (user == null)
+                //User user = await GetUserByUsername(user);
+                /*if (user == null)
                 {
                     Console.WriteLine("\tUser not found.");
                     return false;
-                }
+                }*/
                 user.Token = null;
-                user.ExpiresAt = null;
+                user.ExpiresAt = DateTime.UtcNow;
                 await UpdateUserToken(user);
-                return true;
+
+                try
+                {
+                    string cacheKey = $"user_${user.Username}";
+                    await InvalidateCacheKeyAsync(cacheKey);
+                    Console.WriteLine($"\tInvalidated cache for key: {cacheKey}");
+                }
+                catch (Exception)
+                {
+                    // Ignore cache invalidation errors
+                }
+
+                    return true;
             }
             catch (Exception)
             {
@@ -588,11 +600,27 @@ JOIN
 
         // Get Specific Data Methods
 
-        public async Task<User> GetUserByUsername(string username)
+        public async Task<User> GetUserByUsername(string username) // Cached
         {
             Console.WriteLine("** Opening connection - GetUserByUsername **");
-            User user = null; // Initialize user to null
 
+            User user = null; // Initialize user to null
+            string cacheKey = $"user_${username}";
+
+            // Check cache first
+            user = await GetCachedItemAsync<User>(cacheKey);
+            if (user != null)
+            {
+                Console.WriteLine($"\tCache HIT for key: {cacheKey}");
+                return user; // Cache HIT: Return data from Redis
+            }
+            else
+            {
+                user = new User(); // Initialize if cache miss
+                Console.WriteLine($"\tCache MISS for key: {cacheKey}");
+            }
+
+            // go to database
             try
             {
                 // 1. Use the correct column names from your database schema
@@ -649,6 +677,13 @@ JOIN
             catch (Exception ex)
             {
                 Console.WriteLine($"\t[ERROR] General Exception: {ex.Message}");
+            }
+
+            // Update Cache
+            if (user != null)
+            {
+                await SetCachedItemAsync(cacheKey, user, DefaultCacheExpiration);
+                Console.WriteLine($"\tCaching for key: {cacheKey}");
             }
 
             return user;
@@ -1135,7 +1170,7 @@ JOIN
 
         // Update Data Methods
 
-        public async Task UpdateUserToken(User user)
+        public async Task UpdateUserToken(User user) // Clear Cache
         {
             Console.WriteLine("** Opening connection - UpdateUserToken **");
             try
@@ -1155,6 +1190,16 @@ JOIN
                     }
                 }
                 Console.WriteLine("** Closing connection **");
+                try
+                {
+                    string cacheKey = $"user_${user.Username}";
+                    await InvalidateCacheKeyAsync(cacheKey);
+                    Console.WriteLine($"\tInvalidated cache for key: {cacheKey}");
+                }
+                catch (Exception)
+                {
+                    // Ignore cache invalidation errors
+                }
             }
             catch (Exception ex)
             {

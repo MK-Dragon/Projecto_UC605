@@ -108,47 +108,41 @@ namespace Project605_2.Controllers
         }
 
         [HttpPost("logout")] // TODO: Implement logout endpoint
-        public async Task<IActionResult> LogoutUser([FromBody] LoginRequest loginData)
+        public async Task<IActionResult> LogoutUser([FromBody] LoginRequest user) // TODO LOL
         {
+            Console.WriteLine($"Logout request for user: {user.Username}");
             // Basic Validation
-            if (loginData == null || string.IsNullOrEmpty(loginData.Username) || string.IsNullOrEmpty(loginData.Password))
+            if (user == null || string.IsNullOrEmpty(user.Username))
             {
                 // Return HTTP 400 Bad Request if the payload is incomplete
-                return BadRequest("User and password are required.");
+                return BadRequest("Username is required.");
             }
 
-            if (await _dbServices.ValidateLogin(loginData))
-            {
-                User user = await _dbServices.GetUserByUsername(loginData.Username);
-
-                // Generate JWT Token
-                string token = _tokenService.GenerateToken(loginData.Username);
-                user.Token = token;
-                user.ExpiresAt = DateTime.UtcNow.AddHours(2); // Token valid for 2 hours
-                user.CreatedAt = DateTime.UtcNow;
-
-                // save token to database
-                try
-                {
-                    await _dbServices.UpdateUserToken(user);
-                }
-                catch (Exception)
-                {
-
-                    return StatusCode(500, new { Message = "Error saving token to database." });
-                }
-
-                return Ok(new
-                {
-                    Message = "Login successful!",
-                    Username = loginData.Username,
-                    Token = token
-                });
-            }
-            else
+            // Check Category Exists
+            User check_user = await _dbServices.GetUserByUsername(user.Username); // checking if null did not work...
+            if (check_user == null)
             {
                 // Return HTTP 401 Unauthorized
-                return Unauthorized(new { Message = "Invalid credentials." });
+                return Unauthorized(new { Message = "User Does not Exist." });
+            }
+
+            try
+            {
+                if (await _dbServices.InvalidateToken(check_user))
+                {
+                    return Ok(new
+                    {
+                        Message = "User was Logged out successful!"
+                    });
+                }
+                else
+                {
+                    return StatusCode(500, new { Message = "DB Error Invalidating token in database." });
+                }
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Error Invalidating token in database." });
             }
         }
 
