@@ -699,7 +699,7 @@ app.post('/api/adduser', async (req, res) => {
 
 
 //TEST
-app.post('/api/updateproduct', async (req, res) => {
+  app.post('/api/updateproduct', async (req, res) => { 
     try {
         const { id, name, idcategory } = req.body;
 
