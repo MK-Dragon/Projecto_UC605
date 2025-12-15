@@ -698,28 +698,6 @@ app.post('/api/adduser', async (req, res) => {
 });
 
 
-/*/TEST
-app.post('/api/updateproduct', async (req, res) => {
-    try {
-        const { id, name, idCategory } = req.body;
-
-        console.log(`Node [updateproduct POST]: ${id}, ${name}, ${idCategory}`);
-
-        const response = await axios.post(
-            AUTH_SERVICE_URL + "/api/usupdateproduct",
-            //{ id, name, idCategory }
-            { httpsAgent }
-        );
-
-        res.status(response.status).json(response.data);
-
-    } catch (error) {
-        console.error("Upstream Error:", error.message);
-        res.status(500).json({ message: "Update failed" });
-    }
-});*/
-
-
 
 
 // Page Routing!
