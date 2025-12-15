@@ -17,45 +17,26 @@
 </head>
 <body class="bg-light">
 
-<!--<header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-  <div class="container-fluid">
-    <span class="navbar-brand fw-bold">Products</span>
-
-    <div class="d-flex gap-2">
-      <a href="index.html" class="btn btn-outline-primary">Home</a>
-      <button id="btnAddProduct" class="btn btn-primary">Add product</button>
-    </div>
-  </div>
-</header>-->
-
   <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container-fluid">
       <a class="navbar-brand" href="/home">
-          <img src="../img/logo.png" alt="Warehouse Logo" style="object-fit: contain; height: 50px; margin-right: 10px; vertical-align: middle;">
+          <img src="../img/logo.png" alt="Warehouse Logo"
+               style="object-fit: contain; height: 50px; margin-right: 10px; vertical-align: middle;">
           Warehouse Manager
       </a>
-        
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+              data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
       </button>
-        
+
       <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
-              <li class="nav-item">
-                  <a class="nav-link" href="/add_product">Add Products</a>
-              </li>
-              <li class="nav-item">
-                  <a class="nav-link" href="/products">Products</a>
-              </li>
-              <li class="nav-item">
-                  <a class="nav-link" href="/inventory">Inventory</a>
-              </li>
-              <li class="nav-item">
-                  <a class="nav-link" href="/manage_stores_cat">Manage Stores/Categories</a>
-              </li>
-              <li class="nav-item">
-                  <a class="nav-link" href="/login"><i class="bi bi-power"></i> Logout</a>
-              </li>
+              <li class="nav-item"><a class="nav-link" href="/add_product">Add Products</a></li>
+              <li class="nav-item"><a class="nav-link" href="/products">Products</a></li>
+              <li class="nav-item"><a class="nav-link" href="/inventory">Inventory</a></li>
+              <li class="nav-item"><a class="nav-link" href="/manage_stores_cat">Manage Stores/Categories</a></li>
+              <li class="nav-item"><a class="nav-link" href="/login"><i class="bi bi-power"></i> Logout</a></li>
           </ul>
       </div>
     </div>
@@ -63,7 +44,7 @@
 
 <main class="container py-4">
 
-  <div id="msg" class="mb-3 fw-bold"></div>  <!-- AQUI O FIX -->
+  <div id="msg" class="mb-3 fw-bold"></div>
 
   <div class="row mb-3">
     <div class="col-md-4">
@@ -103,20 +84,6 @@
         </div>
       </div>
 
-    </div>
-  </div>
-</div>
-
-<!-- MODAL CONFIRM -->
-<div class="modal fade" id="addConfirmModal">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header"><h5>Add new product</h5></div>
-      <div class="modal-body">Do you want to add a new product?</div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button id="confirmAddBtn" class="btn btn-primary">Yes</button>
-      </div>
     </div>
   </div>
 </div>

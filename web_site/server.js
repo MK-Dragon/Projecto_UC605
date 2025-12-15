@@ -90,7 +90,7 @@ function authenticateToken(req, res, next) {
 
 app.use(cors({
     origin: '*', // For testing; use your actual domain in production
-    methods: ['GET', 'POST', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'OPTIONS'], //add PUT (Test)
     allowedHeaders: ['Content-Type', 'authorization', 'username']
 }));
 
@@ -573,6 +573,28 @@ app.post('/api/adduser', async (req, res) => {
 
         // Forward the correct status and the error data to the frontend
         res.status(status).json(data);
+    }
+});
+
+
+//TEST
+app.post('/api/updateproduct', async (req, res) => {
+    try {
+        const { id, name, idcategory } = req.body;
+
+        console.log(`Node [updateproduct POST]: ${id}, ${name}, ${idcategory}`);
+
+        const response = await axios.post(
+            AUTH_SERVICE_URL + "/api/usupdateproduct",
+            { id, name, idcategory },
+            { httpsAgent }
+        );
+
+        res.status(response.status).json(response.data);
+
+    } catch (error) {
+        console.error("Upstream Error:", error.message);
+        res.status(500).json({ message: "Update failed" });
     }
 });
 
