@@ -209,7 +209,7 @@ async function saveProductEdit(idproduct) {
             idcategory: newCategory
         })
     });
-
+    console.log(`Status: ${res.status}`)
     if (!res.ok) throw new Error("Erro ao atualizar");
 
     loadProducts();
@@ -220,7 +220,7 @@ async function saveProductEdit(idproduct) {
 
 } catch (err) {
     console.error(err);
-    alert("Erro ao guardar alterações");
+    alert("Erro ao guardar alterações"); // pop do ERRO!
 }
 }
 
