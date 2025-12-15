@@ -26,7 +26,7 @@ catMap.set(-1, "NADA");
 
 loadCategories();
 
-let allProducts = [];  // <-- Mantemos todos os produtos aqui para filtrar depois
+let allProducts = []; // <-- Mantemos todos os produtos aqui para filtrar depois
 
 async function loadProducts() {
     const msg = document.getElementById("msg");
