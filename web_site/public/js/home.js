@@ -1,6 +1,84 @@
-document.addEventListener("DOMContentLoaded", initHome);
+//document.addEventListener("DOMContentLoaded", initHome);
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // This will cause a different error in a module, 
+    // but reinforces the 'top level' rule.
+    const udata = fetchUserData()
+    
+    const logoutButton = document.getElementById('logout-button');
+    
+    if (logoutButton) {
+        // Attach the event listener
+        logoutButton.addEventListener('click', (event) => {
+            // CRITICAL: Stop the browser's default action (e.g., following the 'href="#"')
+            event.preventDefault(); 
+            
+            // Call the function that makes the POST request and redirects
+            logoutUser();
+        });
+    }
+    initHome();
+});
 
 let categoryMap = new Map();
+
+
+async function fetchUserData() {
+    try {
+        const response = await fetch('/api/get-user-data');
+        const data = await response.json();
+
+        if (response.ok && data.isLoggedIn) {
+            // Success: Return the user data
+            const usernameElement = document.getElementById('username-display');
+            if (usernameElement) {
+                usernameElement.innerHTML = `<i class="bi bi-person-circle"></i> ${data.username}`;
+                //usernameElement.textContent += data.username;
+            }
+            console.log("\t\tUSER: " + data.username)
+            return data;
+        } else {
+            // Not logged in or session expired
+            console.warn("User session expired or not logged in.");
+            window.location.href = '/login'; 
+            //return null;
+        }
+    } catch (error) {
+        console.error("Failed to fetch user data:", error);
+        return null;
+    }
+}
+
+async function logoutUser() {
+    try {
+        const response = await fetch('/api/logout', {
+            method: 'POST', // CRITICAL: Logout actions should use POST
+            headers: {
+                'Content-Type': 'application/json'
+                // The browser automatically attaches the session cookie here
+            }
+        });
+
+        // The server response will tell us if the session was successfully destroyed
+        if (response.ok) {
+            console.log("User successfully logged out and session destroyed.");
+            
+            // Redirect the user to the login page after successful server action
+            window.location.href = '/login'; 
+        } else {
+            // Handle server-side failure (e.g., 500 status from the server)
+            const data = await response.json();
+            alert(`Logout failed on server: ${data.message}`);
+        }
+
+    } catch (error) {
+        console.error("Network error during logout:", error);
+        alert("A network error occurred during logout. Please try again.");
+    }
+}
+
+
+
 
 async function initHome() {
   await loadCategories();
