@@ -591,8 +591,10 @@ namespace Project605_2.Controllers
 
             // Check Category Exists
             User check_user = await _dbServices.GetUserByUsername(NewUser.Username); // checking if null did not work...
-            if (check_user != null)
+            Console.WriteLine($"check: {check_user.Username}");
+            if (check_user.Username == NewUser.Username)
             {
+                Console.WriteLine($"check == newuser: {check_user.Username == NewUser.Username}");
                 // Return HTTP 401 Unauthorized
                 return Unauthorized(new { Message = "User Already Exist." });
             }
@@ -621,6 +623,7 @@ namespace Project605_2.Controllers
                 return StatusCode(500, new { Message = "Error retrieving user from database after insertion." });
             }
         }
+
 
     }
 }

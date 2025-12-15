@@ -752,6 +752,10 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'pages', 'login.html'));
 });
 
+app.get('/signup', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'pages', 'signup.html'));
+});
+
 app.get('/products', (req, res) => {
     if (req.session.isLoggedIn) {
         // The user is logged in, send the actual HTML file
