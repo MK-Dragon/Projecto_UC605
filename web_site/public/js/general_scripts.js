@@ -25,7 +25,8 @@ export async function fetchUserData() {
         } else {
             // Not logged in or session expired
             console.warn("User session expired or not logged in.");
-            return null;
+            window.location.href = '/login'; 
+            //return null;
         }
     } catch (error) {
         console.error("Failed to fetch user data:", error);
