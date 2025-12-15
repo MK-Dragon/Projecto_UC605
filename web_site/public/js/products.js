@@ -1,10 +1,12 @@
+import { fetchUserData, logoutUser } from './general_scripts.js';
+
 console.log("products.js carregado!");
 
 document.addEventListener('DOMContentLoaded', async () => {
     // This will cause a different error in a module, 
     // but reinforces the 'top level' rule.
     const udata = fetchUserData()
-    
+        
     const logoutButton = document.getElementById('logout-button');
     
     if (logoutButton) {
@@ -27,15 +29,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ================= GLOBALS =================
 let catMap = new Map();
 catMap.set(-1, "N/A");
-
-
+let allProducts = []; // <-- Mantemos todos os produtos aqui para filtrar depois
 let currentProduct = null;
 
 
 // ================= LOAD PRODUCTS =================
-
-let allProducts = []; // <-- Mantemos todos os produtos aqui para filtrar depois
-
 async function loadProducts() {
     const msg = document.getElementById("msg");
 
@@ -85,15 +83,17 @@ function renderProducts(list) {
 
         grid.innerHTML += `
             <div class="col-md-4">
-                <div class="product-card p-3 shadow-sm"
+                <div class="product-card p-3 shadow-sm product-clickable" 
                      style="cursor:pointer"
-                     onclick='openProductModal(${JSON.stringify(p)})'>
-                    <h5>${p.name}</h5>
+                     data-product-id="${p.id}"> <h5>${p.name}</h5>
                     <p>Categoria: ${categoryName}</p>
                 </div>
             </div>
         `;
     });
+    
+    // NOVO PASSO: Anexar o manipulador de eventos após a renderização
+    attachProductClickHandlers(); 
 }
 
 // ================= LOAD CATEGORIES =================
@@ -121,7 +121,17 @@ async function loadCategories() {
 }
 
 // ================= MODAL =================
-function openProductModal(product) {
+function openProductModal(idproduct) { 
+    
+    // 1. Encontre o produto completo no array global
+    const product = allProducts.find(p => p.id === idproduct);
+
+    if (!product) {
+        console.error("Produto não encontrado com ID:", idproduct);
+        return; 
+    }
+    
+    // 2. O resto da função continua a usar o objeto 'product'
     currentProduct = product;
 
     document.getElementById("modalName").textContent = product.name;
@@ -131,6 +141,7 @@ function openProductModal(product) {
     document.getElementById("modalCategory").textContent =
         catMap.get(product.idCategory) || "N/A";
 
+    // O código do Bootstrap parece estar correto
     new bootstrap.Modal(
         document.getElementById("productModal")
     ).show();
@@ -212,3 +223,20 @@ async function saveProductEdit(idproduct) {
     alert("Erro ao guardar alterações");
 }
 }
+
+// ================= HANDLERS DINÂMICOS =================
+
+function attachProductClickHandlers() {
+    const productCards = document.querySelectorAll('.product-clickable');
+    
+    productCards.forEach(card => {
+        card.addEventListener('click', (event) => {
+            // Pega o ID do atributo 'data-product-id'
+            const productId = parseInt(event.currentTarget.dataset.productId, 10);
+            
+            // Chama a função openProductModal com o ID
+            openProductModal(productId);
+        });
+    });
+}
+
