@@ -221,9 +221,9 @@ document.getElementById("modalEdit").addEventListener("click", () => {
         </select>
     `;
 
-    const btn = document.getElementById("modalEdit");
+    const btn = document.getElementById("modalSave");
     btn.textContent = "Save";
-   btn.onclick = () => saveProductEdit(currentProduct.id);
+    btn.onclick = () => saveProductEdit(currentProduct.id);
 
 });
 
@@ -241,7 +241,7 @@ async function saveProductEdit(idproduct) {
         return;
     }
 
-    console.log("POST /api/updateproduct");
+    console.log("POST /api/updateproduct " + `(${idproduct})${newName} - ${newCategory}`);
 
   try {
 
@@ -258,11 +258,15 @@ async function saveProductEdit(idproduct) {
         body: JSON.stringify({
             id: idproduct,
             name: newName,
-            idcategory: newCategory
+            idCategory: newCategory
         })
     });
     console.log(`Status: ${res.status}`)
-    if (!res.ok) throw new Error("Erro ao atualizar");
+    if (!res.ok)
+    {
+        //throw new Error("Erro ao atualizar");
+        console.warn("Erro ao atualizar ");
+    }
 
     loadProducts();
 

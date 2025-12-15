@@ -588,14 +588,14 @@ app.put('/api/updatestock', async (req, res) => {
 
 app.put('/api/updateproduct', async (req, res) => {
     try {
-        const { id, name, idcategory } = req.body;
+        const { id, name, idCategory } = req.body;
 
-        console.log(`Node [updateproduct]: ${id}, ${name}, ${idcategory}`);
+        console.log(`Node [updateproduct]: ${id}, ${name}, ${idCategory}`);
 
         // Forwarding the request to the upstream RestAPI
-        const response = await axios.post(
+        const response = await axios.put(
             AUTH_SERVICE_URL + "/api/usupdateproduct", 
-            { id, name, idcategory }, 
+            { id, name, idCategory },
             { httpsAgent }
         );
 
@@ -698,16 +698,16 @@ app.post('/api/adduser', async (req, res) => {
 });
 
 
-//TEST
-  app.post('/api/updateproduct', async (req, res) => { 
+/*/TEST
+app.post('/api/updateproduct', async (req, res) => {
     try {
-        const { id, name, idcategory } = req.body;
+        const { id, name, idCategory } = req.body;
 
-        console.log(`Node [updateproduct POST]: ${id}, ${name}, ${idcategory}`);
+        console.log(`Node [updateproduct POST]: ${id}, ${name}, ${idCategory}`);
 
         const response = await axios.post(
             AUTH_SERVICE_URL + "/api/usupdateproduct",
-            { id, name, idcategory },
+            //{ id, name, idCategory }
             { httpsAgent }
         );
 
@@ -717,7 +717,7 @@ app.post('/api/adduser', async (req, res) => {
         console.error("Upstream Error:", error.message);
         res.status(500).json({ message: "Update failed" });
     }
-});
+});*/
 
 
 
@@ -750,6 +750,10 @@ app.get('/home', (req, res) => {
 
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'pages', 'login.html'));
+});
+
+app.get('/signup', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'pages', 'signup.html'));
 });
 
 app.get('/products', (req, res) => {

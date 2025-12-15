@@ -27,6 +27,18 @@ document.addEventListener('DOMContentLoaded', () => {
             handleLogin(event);
         });
     }
+
+    const sighupButton = document.getElementById('btn_create_acount');
+
+    //console.log("Login clicked!!");
+
+    if (sighupButton) {
+        sighupButton.addEventListener('click', (event) => {
+            // Because it's inside a mock form, prevent default behavior
+            event.preventDefault(); 
+            window.location.href = "/signup";
+        });
+    }
 });
 
 /**
