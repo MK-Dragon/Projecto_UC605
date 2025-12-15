@@ -327,11 +327,12 @@ namespace Project605_2.Controllers
         [HttpPut("usupdateproduct")]
         public async Task<IActionResult> UsUpdateProduct([FromBody] Product ProductUpdated)
         {
+            Console.WriteLine($"!!! Update Product !!! - [{ProductUpdated.Id}] {ProductUpdated.Name} - {ProductUpdated.IdCategory}");
             // Basic Validation
             if (ProductUpdated == null || ProductUpdated.Id <= 0 || string.IsNullOrEmpty(ProductUpdated.Name) || ProductUpdated.IdCategory <= 0)
             {
                 // Return HTTP 400 Bad Request if the payload is incomplete
-                return BadRequest("StoreStock Data is Missing");
+                return BadRequest("Product Data is Missing");
             }
 
             // Validate if Product Exists
