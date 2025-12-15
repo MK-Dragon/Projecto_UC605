@@ -4,159 +4,103 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Warehouse Manager</title>
+
   <link rel="icon" type="image/x-icon" href="../img/logo.ico">
 
   <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-  <!-- Estilos 
-  <link rel="stylesheet" href="../css/styles.css" />-->
-  
+
+  <style>
+    .hero-overlay {
+      background: rgba(0,0,0,0.35);
+    }
+
+    .product-card {
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .product-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 1rem 2rem rgba(0,0,0,.15);
+    }
+  </style>
 </head>
 
 <body class="bg-body">
 
+  <!-- NAVBAR -->
   <nav class="navbar navbar-expand-lg bg-success-subtle">
     <div class="container-fluid">
-      <a class="navbar-brand" href="/home">
-          <img src="../img/logo.png" alt="Warehouse Logo" style="object-fit: contain; height: 50px; margin-right: 10px; vertical-align: middle;">
-          Warehouse Manager
+
+      <a class="navbar-brand d-flex align-items-center gap-2" href="/home">
+        <img src="../img/logo.png" alt="Logo" style="height:42px">
+        <strong>Warehouse Manager</strong>
       </a>
-        
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
       </button>
-        
+
       <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
-              <li class="nav-item">
-                  <a class="nav-link" href="/add_product">Add Products</a>
-              </li>
-              <li class="nav-item">
-                  <a class="nav-link" href="/products">Products</a>
-              </li>
-              <li class="nav-item">
-                  <a class="nav-link" href="/inventory">Inventory</a>
-              </li>
-              <li class="nav-item">
-                  <a class="nav-link" href="/manage_stores_cat">Manage Stores/Categories</a>
-              </li>
-              <li class="nav-item">
-                  <a class="nav-link" id="username-display" href="#"><i class="bi bi-person-circle"></i> </a>
-              </li>
-              <li class="nav-item">
-                  <button type="button" id="logout-button"><i class="bi bi-power"></i> Logout</button>
-              </li>
-          </ul>
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+          <li class="nav-item"><a class="nav-link" href="/add_product">Add Products</a></li>
+          <li class="nav-item"><a class="nav-link" href="/products">Products</a></li>
+          <li class="nav-item"><a class="nav-link" href="/inventory">Inventory</a></li>
+          <li class="nav-item"><a class="nav-link" href="/manage_stores_cat">Manage Stores / Categories</a></li>
+          <li class="nav-item"><a class="nav-link" id="username-display" href="#"><i class="bi bi-person-circle"></i></a></li>
+          <li class="nav-item">
+            <button id="logout-button" class="btn btn-outline-danger btn-sm">
+              <i class="bi bi-power"></i> Logout
+            </button>
+          </li>
+        </ul>
       </div>
+
     </div>
   </nav>
 
-
-
-  <!-- Conteúdo -->
+  <!-- MAIN -->
   <main class="container py-4">
-    <div class="row g-4">
+    <div class="mx-auto" style="max-width:1100px">
 
-      <!-- Tabela -->
-      <section class="col-lg-7">
-        <div class="card shadow-sm border-0 h-100">
-
-          <div class="card-header bg-white border-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <h2 class="h5 mb-0">Products List</h2>
-
-            <div class="d-flex flex-wrap gap-2">
-              <input id="search" type="search" class="form-control form-control-sm" placeholder="Search product..." />
-              <button id="refreshBtn" class="btn btn-outline-secondary btn-sm">Refresh</button>
-              <button id="clearBtn" class="btn btn-outline-danger btn-sm">Clear all</button>
+      <!-- HERO -->
+      <section class="mb-5">
+        <div class="position-relative rounded-4 overflow-hidden shadow-sm">
+          <img src="../img/home.png" class="w-100" style="height:min(320px,40vh);object-fit:cover">
+          <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center hero-overlay">
+            <div class="text-white px-4 px-md-5">
+              <h1 class="fw-bold mb-2">Warehouse Manager</h1>
+              <p class="opacity-75 mb-3">Simple product and inventory management</p>
+              <a href="/add_product" class="btn btn-light btn-sm">
+                <i class="bi bi-plus-circle"></i> Add Products
+              </a>
             </div>
           </div>
-
-          <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle mb-0" id="productsTable">
-              <thead class="table-light">
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Category</th>
-                  <th>Qty</th>              
-                  <th style="width:120px;">Actions</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-
         </div>
       </section>
 
-      <!-- Formulário -->
-      <aside class="col-lg-5">
-        <div class="card shadow-sm border-0 h-100">
-          <div class="card-body">
+      <!-- ÚLTIMOS PRODUTOS -->
+      <section>
+        <h2 class="fw-semibold mb-1">Latest products added</h2>
+        <p class="text-muted mb-4">Most recently registered products in the system</p>
 
-            <h2 class="h5 mb-3">Add / Edit Product</h2>
-
-            <form id="productForm" autocomplete="off">
-              <input type="hidden" id="id" />
-
-              <div class="mb-3">
-                <label for="name" class="form-label">Name</label>
-                <input id="name" type="text" class="form-control" placeholder="Product name" required/>
-              </div>
-
-              <div class="mb-3">
-                <label for="category" class="form-label">Category</label>
-                <select id="category" class="form-select" required>
-                  <option value="" disabled selected>Select category</option>
-                  <!-- Correspondente à base de dados -->
-                  <option value="1">Technologic</option>
-                  <option value="2">Clothing</option>
-                  <option value="3">Home</option>
-                  <option value="4">Sports</option>
-                </select>
-              </div>
-
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label for="quantity" class="form-label">Quantity</label>
-                  <input id="quantity" type="number" min="0" class="form-control" placeholder="0" required/>
-                </div>
-
-              
-
-              <div class="d-flex gap-2 mt-4">
-                <button type="submit" class="btn btn-primary" id="submitBtn">ADD</button>
-                <button type="button" class="btn btn-outline-secondary" id="resetBtn">Reset</button>
-              </div>
-            </form>
-
-          </div>
+        <div class="row g-4 justify-content-center" id="lastProducts">
+          <!-- JS injecta aqui -->
         </div>
-      </aside>
+      </section>
 
     </div>
   </main>
 
-  <!-- Footer -->
+  <!-- FOOTER -->
   <footer class="py-3 text-center text-muted small">
     © 2025 Warehouse Manager
   </footer>
 
-  <!-- Template da tabela -->
-  <template id="rowTemplate">
-    <tr>
-      <td data-cell="id"></td>
-      <td data-cell="name"></td>
-      <td data-cell="category"></td>
-      <td data-cell="quantity"></td>
-      <td class="d-flex gap-1">
-        <button class="btn btn-sm btn-outline-primary edit">Edit</button>
-        <button class="btn btn-sm btn-outline-danger delete">Delete</button>
-      </td>
-    </tr>
-  </template>
-  <script src="../js/script.js" type="module"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+  <!-- JS -->
+  <script src="../js/home.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

@@ -96,7 +96,7 @@ async function loadProducts() {
         const data = await res.json();
         console.log("PRODUTOS:", data);
 
-        msg.textContent = "Produtos carregados!";
+        msg.textContent = "Uploaded products!";
         msg.style.color = "green";
 
         allProducts = data;
@@ -124,7 +124,6 @@ function applyFilters() {
 
     renderProducts(filtered);
 }
-
 // ================= RENDER =================
 function renderProducts(list) {
     const grid = document.getElementById("productsGrid");
@@ -134,18 +133,23 @@ function renderProducts(list) {
         const categoryName = catMap.get(p.idCategory) || "N/A";
 
         grid.innerHTML += `
-            <div class="col-md-4">
-                <div class="product-card p-3 shadow-sm product-clickable" 
-                     style="cursor:pointer"
-                     data-product-id="${p.id}"> <h5>${p.name}</h5>
-                    <p>Categoria: ${categoryName}</p>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div 
+                  class="product-card p-4 shadow-sm product-clickable text-center h-100"
+                  style="cursor:pointer"
+                  data-product-id="${p.id}"
+                >
+                    <i class="bi bi-box-seam fs-2 text-success mb-2"></i>
+                    <h5 class="mb-1">${p.name}</h5>
+                    <small class="text-muted">
+                      Category: ${categoryName}
+                    </small>
                 </div>
             </div>
         `;
     });
-    
-    // NOVO PASSO: Anexar o manipulador de eventos após a renderização
-    attachProductClickHandlers(); 
+
+    attachProductClickHandlers();
 }
 
 // ================= LOAD CATEGORIES =================
@@ -168,7 +172,7 @@ async function loadCategories() {
         });
 
     } catch (err) {
-        console.error("Erro ao carregar categorias:", err);
+        console.error("Error loading categories:", err);
     }
 }
 
@@ -179,7 +183,7 @@ function openProductModal(idproduct) {
     const product = allProducts.find(p => p.id === idproduct);
 
     if (!product) {
-        console.error("Produto não encontrado com ID:", idproduct);
+        console.error("Product not found with ID:", idproduct);
         return; 
     }
     
