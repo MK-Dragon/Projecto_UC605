@@ -1,4 +1,20 @@
+import { fetchUserData, logoutUser } from './general_scripts.js';
+
 document.addEventListener("DOMContentLoaded", () => {
+  const udata = fetchUserData()
+    
+  const logoutButton = document.getElementById('logout-button');
+  
+  if (logoutButton) {
+      // Attach the event listener
+      logoutButton.addEventListener('click', (event) => {
+          // CRITICAL: Stop the browser's default action (e.g., following the 'href="#"')
+          event.preventDefault(); 
+          
+          // Call the function that makes the POST request and redirects
+          logoutUser();
+      });
+  }
 
   // ===== CATEGORIAS =====
   const categoryForm = document.getElementById("categoryForm");

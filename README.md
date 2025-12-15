@@ -49,6 +49,7 @@ Ir ao site: http://localhost:3000
 # NPM Libs
 - npm install axios
 - npm install cors
+- npm install express-session
 
 <br><br><hr><hr><br><br>
 

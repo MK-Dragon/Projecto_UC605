@@ -1,3 +1,27 @@
+import { fetchUserData, logoutUser } from './general_scripts.js';
+
+
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // This will cause a different error in a module, 
+    // but reinforces the 'top level' rule.
+    const udata = fetchUserData()
+    
+    const logoutButton = document.getElementById('logout-button');
+    
+    if (logoutButton) {
+        // Attach the event listener
+        logoutButton.addEventListener('click', (event) => {
+            // CRITICAL: Stop the browser's default action (e.g., following the 'href="#"')
+            event.preventDefault(); 
+            
+            // Call the function that makes the POST request and redirects
+            logoutUser();
+        });
+    }
+});
+
 //--------------------------------------------------------------
 //  SELECTORES (Index + Products)
 //--------------------------------------------------------------
@@ -112,6 +136,8 @@ function getQuantity(id_product) {
 //  RENDER TABELA (INDEX.HTML)
 //--------------------------------------------------------------
 function renderTable(filter = "") {
+  const userData = fetchUserData();
+
   if (!tbody) return; // Não está na página index
 
   tbody.innerHTML = "";

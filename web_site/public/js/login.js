@@ -12,6 +12,9 @@
 
 });*/
 
+localStorage.setItem('authToken', null);
+localStorage.setItem('username', null);
+
 document.addEventListener('DOMContentLoaded', () => {
     const loginButton = document.getElementById('btn_login');
 
@@ -53,7 +56,7 @@ async function handleLogin(event) {
             //resultDiv.innerText = `Success!\nToken: ${data.token}`;
             // Store token in localStorage for subsequent requests
             localStorage.setItem('authToken', data.token);
-            console.log("front: Login good Token: " + data.token)
+            //console.log("front: Login good Token: " + data.token)
             //resultDiv.innerText = `message: ${data.message}`;
 
             localStorage.setItem('authToken', data.token);

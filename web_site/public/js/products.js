@@ -1,5 +1,23 @@
 console.log("products.js carregado!");
-document.addEventListener("DOMContentLoaded", loadProducts);
+document.addEventListener('DOMContentLoaded', async () => {
+    // This will cause a different error in a module, 
+    // but reinforces the 'top level' rule.
+    const udata = fetchUserData()
+    
+    const logoutButton = document.getElementById('logout-button');
+    
+    if (logoutButton) {
+        // Attach the event listener
+        logoutButton.addEventListener('click', (event) => {
+            // CRITICAL: Stop the browser's default action (e.g., following the 'href="#"')
+            event.preventDefault(); 
+            
+            // Call the function that makes the POST request and redirects
+            logoutUser();
+        });
+    }
+    loadProducts();
+});
 
 // global Cattegory MAP!
 let catMap = new Map();

@@ -10,6 +10,26 @@ const https = require('https');
 const { console } = require('inspector');
 const cors = require('cors');
 
+const session = require('express-session');
+app.use(session({
+    secret: 'your_secret_key', // Keep your secret key here -> put into file and gitignore LATER! ^_^
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+        httpOnly: true, 
+        // ------------------------------------
+        // THIS IS THE CRITICAL CHANGE FOR HTTP
+        // ------------------------------------
+        secure: false, 
+        // OR simply remove the 'secure' property if you're sure it defaults to false
+        
+        // You might also need to set the sameSite property for older configurations 
+        // or if running across different ports (e.g., frontend:3000, backend:8080)
+        // sameSite: 'lax' 
+    } 
+}));
+//var USERS
+
 const httpsAgent = new https.Agent({  
   rejectUnauthorized: false 
 });
@@ -116,9 +136,23 @@ app.post('/api/login', async (req, res) => {
 
         if (response.status === 200)
         {
-            res.status(response.status).json({
-                message: "All Good:" + " " + response.data["token"],
-                token: response.data["token"]
+            // 1. Setup Session Data
+            req.session.isLoggedIn = true;
+            req.session.username = username;
+            
+            // 2. **CRITICAL:** Explicitly save the session and wait for the callback
+            req.session.save((err) => {
+                if (err) {
+                    console.error("Error saving session:", err);
+                    return res.status(500).json({ message: "Session save failed" });
+                }
+
+                // 3. Send the JSON response *ONLY AFTER* the session is saved
+                // The Set-Cookie header will now be guaranteed to be in this response.
+                res.status(response.status).json({
+                    message: "All Good:" + " " + response.data["token"],
+                    token: response.data["token"]
+                });
             });
         }
         else
@@ -138,6 +172,93 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+app.post('/api/logout', async (req, res) => {
+    // 1. ***CRITICAL: GET USERNAME BEFORE DESTROYING SESSION***
+    // Check if the session exists and extract the username first.
+    let usernameToLogout = null;
+    if (req.session && req.session.username) {
+        usernameToLogout = req.session.username;
+    }
+
+    let upstreamResponseStatus = 200;
+    let upstreamResponseMessage = "User is now Logged Out :)";
+
+    try {
+        if (usernameToLogout) {
+            // 2. FORWARD REQUEST TO UPSTREAM API FIRST
+            // This is safe because we have the username, and we haven't destroyed the session yet.
+            const response = await axios.post(AUTH_SERVICE_URL + "/api/logout", {
+                username: usernameToLogout,
+                password: "I'm a Golden GOD!"
+            }, { httpsAgent });
+
+            // Store the result of the upstream call
+            upstreamResponseStatus = response.status;
+            upstreamResponseMessage = "User is now Logged Out :)";
+
+        }
+
+    } catch (error) {
+        console.error("Upstream Logout Error:", error.message);
+        // Even if the upstream fails, we must continue to destroy the local session
+        // to protect the user's security.
+        upstreamResponseStatus = error.response?.status || 500;
+        upstreamResponseMessage = "Logout failed on upstream service, but local session destroyed.";
+    }
+
+    // 3. DESTROY LOCAL SESSION (The asynchronous part)
+    // We must wait for this to finish before sending the final response.
+
+    // A utility function to promisify the destroy call is cleaner, but for simplicity:
+    if (req.session) {
+        req.session.destroy(err => {
+            // 4. Send the FINAL response inside the callback
+            if (err) {
+                console.error("Local session destroy error:", err);
+                return res.status(500).json({ message: "Logout failed due to server error." });
+            }
+            
+            // Success: Send the response back to the client
+            res.status(200).json({
+                message: upstreamResponseMessage
+            });
+        });
+    } else {
+        // No session to destroy, just send the final response
+        res.status(200).json({
+            message: "Already logged out (No active local session)."
+        });
+    }
+    
+    // 5. ***CRITICAL: REMOVE THE REDIRECT***
+    // The frontend JS handles the redirect to '/login' after receiving this JSON response.
+    // res.redirect('/login'); // <-- DO NOT INCLUDE THIS
+});
+
+app.get('/api/get-user-data', (req, res) => {
+    // Check if the user is authenticated via the session
+    if (req.session.isLoggedIn) {
+        
+        // 1. Compile the session data you want to expose to the client
+        const userData = {
+            isLoggedIn: true,
+            username: req.session.username, // Use the session property directly
+            // You can add other session data here:
+            // userId: req.session.userId, 
+            // role: req.session.userRole,
+        };
+        
+        // 2. Send the data in the JSON response body
+        res.json(userData);
+
+    } else {
+        // Not authenticated: Send a 401 response
+        res.status(401).json({ 
+            isLoggedIn: false, 
+            message: 'Authentication required to retrieve user data.' 
+        });
+    }
+});
 
 
 /*app.get('/api/data', authenticateToken, (req, res) => {
@@ -584,9 +705,9 @@ app.post('/api/adduser', async (req, res) => {
 
 app.get('/', (req, res) => {
     // If no token or expired -> Login Page
-    if (true)
+    if (req.session.isLoggedIn)
     {
-        res.sendFile(path.join(__dirname, 'public', 'pages', 'login.html'));
+        res.redirect('/login');
     }
     // else -> index
     else
@@ -596,7 +717,13 @@ app.get('/', (req, res) => {
 });
 
 app.get('/home', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'pages', 'index.html'));
+    if (req.session.isLoggedIn) {
+        // The user is logged in, send the actual HTML file
+        res.sendFile(path.join(__dirname, 'public', 'pages', 'index.html'));
+    } else {
+        // The user is NOT logged in, redirect them
+        res.redirect('/login');
+    }
 });
 
 app.get('/login', (req, res) => {
@@ -604,19 +731,43 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/products', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'pages', 'products.html'));
+    if (req.session.isLoggedIn) {
+        // The user is logged in, send the actual HTML file
+        res.sendFile(path.join(__dirname, 'public', 'pages', 'products.html'));
+    } else {
+        // The user is NOT logged in, redirect them
+        res.redirect('/login');
+    }
 });
 
 app.get('/inventory', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'pages', 'inventory.html'));
+    if (req.session.isLoggedIn) {
+        // The user is logged in, send the actual HTML file
+        res.sendFile(path.join(__dirname, 'public', 'pages', 'inventory.html'));
+    } else {
+        // The user is NOT logged in, redirect them
+        res.redirect('/login');
+    }
 });
 
 app.get('/add_product', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'pages', 'add_product.html'));
+    if (req.session.isLoggedIn) {
+        // The user is logged in, send the actual HTML file
+        res.sendFile(path.join(__dirname, 'public', 'pages', 'add_product.html'));
+    } else {
+        // The user is NOT logged in, redirect them
+        res.redirect('/login');
+    }
 });
 
 app.get('/manage_stores_cat', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'pages', 'manage_stores_cat.html'));
+    if (req.session.isLoggedIn) {
+        // The user is logged in, send the actual HTML file
+        res.sendFile(path.join(__dirname, 'public', 'pages', 'manage_stores_cat.html'));
+    } else {
+        // The user is NOT logged in, redirect them
+        res.redirect('/login');
+    }
 });
 
 
